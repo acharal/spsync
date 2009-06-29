@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpSync.Data.Server", "SpSync.Data.Server\SpSync.Data.Server.csproj", "{614AAE14-FC12-4CC1-B361-D18E57EBF450}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpWSTest", "SpWSTest\SpWSTest.csproj", "{DAEF1044-035D-4488-B807-38AF057A2711}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{614AAE14-FC12-4CC1-B361-D18E57EBF450}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{614AAE14-FC12-4CC1-B361-D18E57EBF450}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{614AAE14-FC12-4CC1-B361-D18E57EBF450}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{614AAE14-FC12-4CC1-B361-D18E57EBF450}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DAEF1044-035D-4488-B807-38AF057A2711}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DAEF1044-035D-4488-B807-38AF057A2711}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DAEF1044-035D-4488-B807-38AF057A2711}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DAEF1044-035D-4488-B807-38AF057A2711}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
