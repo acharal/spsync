@@ -34,15 +34,13 @@ namespace SpSync.Data.Server
 
         public override SyncContext ApplyChanges(SyncGroupMetadata groupMetadata, DataSet dataSet, SyncSession syncSession)
         {
-            SpWS.Lists ListServices = new SpSync.Data.Server.SpWS.Lists();
-            ListServices.Credentials = ServiceCredentials;
 
             foreach (SyncTableMetadata tableMetadata in groupMetadata.TablesMetadata)
             {
                 //ListServices.UpdateListItems(tableMetadata.TableName, null);
+                ApplyChangesToTable(tableMetadata, dataSet, syncSession);
             }
-            ListServices.Dispose();
-
+            
             return new SyncContext();
         }
 
@@ -183,6 +181,8 @@ namespace SpSync.Data.Server
         {
             DataTable inserts = Schema.SchemaDataSet.Tables[tableMetadata.TableName].Clone();
             DataTable deletes = Schema.SchemaDataSet.Tables[tableMetadata.TableName].Clone();
+            
+            bool moreChanges = false;
 
             SpWS.Lists listsServices = new SpSync.Data.Server.SpWS.Lists();
             listsServices.Credentials = System.Net.CredentialCache.DefaultCredentials;
@@ -191,15 +191,16 @@ namespace SpSync.Data.Server
                 tableMetadata.LastReceivedAnchor.Anchor == null ? null : 
                 System.Text.ASCIIEncoding.ASCII.GetString(tableMetadata.LastReceivedAnchor.Anchor);
 
+            // create the empty viewFields in order to retrieve the full set of fields
             XElement viewFields = new XElement("ViewFields");
-
+            /*
             foreach (DataColumn column in inserts.Columns)
             {
                 var fieldref = new XElement("FieldRef");
                 fieldref.SetAttributeValue("Name", column.ColumnName);
                 viewFields.Add(fieldref);
             }
-            
+            */
 
             XElement result = 
                 listsServices.GetListItemChangesSinceToken(
@@ -250,9 +251,18 @@ namespace SpSync.Data.Server
                             // full resynchronization
                             SyncTracer.Warning("Unknown ChangeType " + changeItem.Attribute("ChangeType").Value);
                             break;
+                        case "SystemUpdate":
+                        case "Rename":
+                        case "":
+                            break;
                     }
                 }
                 deletes.AcceptChanges();
+            }
+
+            if (changes.Attribute("MoreChanges") != null)
+            {
+                moreChanges = changes.Attribute("MoreChanges").Value.ToUpper() == "TRUE";
             }
 
             syncContext.NewAnchor = new SyncAnchor(System.Text.ASCIIEncoding.ASCII.GetBytes(newToken));
@@ -311,6 +321,73 @@ namespace SpSync.Data.Server
 
 
             return inserts;
+        }
+
+        private void ApplyChangesToTable(SyncTableMetadata tableMetadata, DataSet dataSet, SyncSession syncSession)
+        {
+            SpWS.Lists ListServices = new SpSync.Data.Server.SpWS.Lists();
+            ListServices.Credentials = ServiceCredentials;
+            DataTable dataTable = dataSet.Tables[tableMetadata.TableName];
+
+            DataTable deletes = dataTable.GetChanges(DataRowState.Deleted);
+            
+            XElement batch = new XElement("Batch");
+            int i = 0;
+            if (deletes != null)
+            {
+                foreach (DataRow deletedRow in deletes.Rows)
+                {
+                    i++;
+                    XElement methoditem = new XElement("Method");
+                    methoditem.SetAttributeValue("Cmd", "Delete");
+                    //methoditem.SetAttributeValue("ID", deletedRow["ID", DataRowVersion.Original]);
+                    methoditem.SetAttributeValue("ID", i.ToString());
+                    XElement fieldId = new XElement("Field");
+                    fieldId.SetAttributeValue("Name", "ID");
+                    fieldId.Value = deletedRow["ID", DataRowVersion.Original].ToString();
+                    methoditem.Add(fieldId);
+                    /*
+                    foreach (DataColumn col in deletes.Columns)
+                    {
+                        XElement field = new XElement("Field");
+                        field.SetAttributeValue("Name", col.ColumnName);
+                        field.Value = deletedRow[col].ToString();
+                        methoditem.Add(field);
+                    }
+                    */
+                    batch.Add(methoditem);
+                }
+            }
+
+            DataTable updates = dataTable.GetChanges(DataRowState.Modified);
+            if (updates != null)
+            {
+                foreach (DataRow updatedRow in updates.Rows)
+                {
+                    i++;
+                    XElement methoditem = new XElement("Method");
+                    methoditem.SetAttributeValue("Cmd", "Update");
+                    //methoditem.SetAttributeValue("ID", deletedRow["ID", DataRowVersion.Original]);
+                    methoditem.SetAttributeValue("ID", i.ToString());
+                    //XElement fieldId = new XElement("Field");
+                    //fieldId.SetAttributeValue("Name", "ID");
+                    //fieldId.Value = updatedRow["ID", DataRowVersion.Original].ToString();
+                    //methoditem.Add(fieldId);
+
+                    foreach (DataColumn col in updates.Columns)
+                    {
+                        XElement field = new XElement("Field");
+                        field.SetAttributeValue("Name", col.ColumnName);
+                        field.Value = updatedRow[col].ToString();
+                        methoditem.Add(field);
+                    }
+
+                    batch.Add(methoditem);
+                }
+            }
+
+            XmlNode result = ListServices.UpdateListItems(tableMetadata.TableName, batch.GetXmlNode());
+            ListServices.Dispose();
         }
     }
 }
