@@ -191,20 +191,22 @@ namespace SpSync.Data.Server
                 tableMetadata.LastReceivedAnchor.Anchor == null ? null : 
                 System.Text.ASCIIEncoding.ASCII.GetString(tableMetadata.LastReceivedAnchor.Anchor);
 
-            XElement viewFields = new XElement("Fields");
+            XElement viewFields = new XElement("ViewFields");
+
             foreach (DataColumn column in inserts.Columns)
             {
                 var fieldref = new XElement("FieldRef");
                 fieldref.SetAttributeValue("Name", column.ColumnName);
                 viewFields.Add(fieldref);
             }
+            
 
             XElement result = 
                 listsServices.GetListItemChangesSinceToken(
                     tableMetadata.TableName, 
                     null, 
+                    null,
                     viewFields.GetXmlNode(), 
-                    null, 
                     null, 
                     null, 
                     token, 
@@ -274,7 +276,13 @@ namespace SpSync.Data.Server
                     {
                         string colName = col.Name.LocalName.Substring("ows_".Length);
                         if (inserts.Columns.Contains(colName))
-                            dataRow[colName] = col.Value;
+                        {
+                            try
+                            {
+                                dataRow[colName] = col.Value;
+                            }
+                            catch (Exception ) { }
+                        }
                         else
                             SyncTracer.Warning("Omitting column " + colName);
                     }
