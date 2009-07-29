@@ -7,9 +7,21 @@ using System.Collections.ObjectModel;
 using System.Data;
 using System.Xml;
 using System.Xml.Linq;
+using SpCaml.DataAccess.Caml;
+using SpCaml.DataAccess.Interface;
 
 namespace SpSync.Data.Server
 {
+    /* Issues To be handled:
+     * - ReadOnly and computed fields are not updated
+     * - New and updated records cannot be distiguished
+     * - Versioning of list schema (aka schema changes) is not handled appropriately
+     * - No easy way to compute the total number of the batches of changes.
+     * - Problem with the ID of the record when uploading new records to sharepoint. IDs are assigned by the server.
+     * - No way to detect only the changed fields. Sharepoint returns the whole record if it updated one field.
+     * - In some cases (if syncanchor is not valid or too old) we must somehow invoke a FULL resync.
+     * - No easy way to detect that the downloaded changes might be occured from a previous update of the same client.
+     */
     public class SpServerSyncProvider : ServerSyncProvider
     {
         private SyncSchema _schema = null;
@@ -30,18 +42,117 @@ namespace SpSync.Data.Server
             
         }
 
-        private System.Net.ICredentials ServiceCredentials = System.Net.CredentialCache.DefaultCredentials;
+        public System.Net.ICredentials ServiceCredentials = System.Net.CredentialCache.DefaultCredentials;
+
+        public int BatchSize = 100;
+
+        private ISpListAdapter _Adapter = null;
+
+        public ISpListAdapter SpAdapter
+        {
+            set {
+                _Adapter = value;
+                _Adapter.BatchCount = BatchSize;
+            }
+
+            get {
+                return _Adapter;
+            }
+        }
 
         public override SyncContext ApplyChanges(SyncGroupMetadata groupMetadata, DataSet dataSet, SyncSession syncSession)
         {
-
+            SyncContext syncContext = new SyncContext();
+            // we have to update statistics appropriatelly
+            // SyncContext must return the dataset of the changes (?)
+            
             foreach (SyncTableMetadata tableMetadata in groupMetadata.TablesMetadata)
             {
                 //ListServices.UpdateListItems(tableMetadata.TableName, null);
-                ApplyChangesToTable(tableMetadata, dataSet, syncSession);
+                ApplyChanges(tableMetadata, dataSet, syncSession);
             }
+            return syncContext;
+        }
+
+        private void ApplyChanges(SyncTableMetadata tableMetadata, DataSet dataSet, SyncSession syncSession)
+        {
+            SpWS.Lists ListServices = new SpSync.Data.Server.SpWS.Lists();
+            ListServices.Credentials = ServiceCredentials;
+            DataTable dataTable = dataSet.Tables[tableMetadata.TableName];
+
+            DataTable deletes = dataTable.GetChanges(DataRowState.Deleted);
+
+            //UpdateBatch updateBatch = new UpdateBatch();
+            List<UpdateItem> updateItems = new List<UpdateItem>();
+            int i = 0;
+            if (deletes != null)
+            {
+                foreach (DataRow deletedRow in deletes.Rows)
+                {
+                    i++;
+                    UpdateItem item = new UpdateItem();
+                    item.ID = i;
+                    item.Command = "Delete";
+                    item.ListItemID = (int)deletedRow["ID", DataRowVersion.Original];
+                    updateItems.Add(item);
+                }
+            }
+
+            DataTable updates = dataTable.GetChanges(DataRowState.Modified);
+            if (updates != null)
+            {
+                foreach (DataRow updatedRow in updates.Rows)
+                {
+                    i++;
+                    UpdateItem item = new UpdateItem();
+                    item.ID = i;
+                    item.Command = "Update";
+                    item.ListItemID = (int)updatedRow["ID", DataRowVersion.Original];
+                    item.ChangedItemData = new ListItem();
+                    item.ChangedItemData.ID = item.ListItemID;
+                    item.ChangedItemData.Fields = new List<KeyValuePair<string, string>>();
+
+                    foreach (DataColumn col in updates.Columns)
+                    {
+                        item.ChangedItemData.Fields.Add(new KeyValuePair<string, string>(col.ColumnName, updatedRow[col].ToString()));
+                    }
+                    updateItems.Add(item);
+                }
+            }
+
+            DataTable inserts = dataTable.GetChanges(DataRowState.Added);
+
+            if (inserts != null)
+            {
+                foreach (DataRow addedRow in inserts.Rows)
+                {
+                    i++;
+                    UpdateItem item = new UpdateItem();
+                    item.ID = i;
+                    item.Command = "New";
+                    //item.ListItemID = (int)addedRow["ID", DataRowVersion.Original];
+                    item.ChangedItemData = new ListItem();
+                    //item.ChangedItemData.ID = item.ListItemID;
+                    item.ChangedItemData.Fields = new List<KeyValuePair<string, string>>();
+
+                    foreach (DataColumn col in inserts.Columns)
+                    {
+                        object o = addedRow[col];
+                        string v = o is System.Guid ? ((Guid)o).ToString("B").ToUpper() : o.ToString();
+
+                        if (o is System.DBNull)
+                            continue;
+
+                        item.ChangedItemData.Fields.Add(new KeyValuePair<string, string>(col.ColumnName, v));
+                    }
+                    updateItems.Add(item);
+                }
+            }
+            UpdateBatch updateBatch = new UpdateBatch(updateItems);
+            updateBatch.ContinueOnError = true;
+            XElement result = ListServices.UpdateListItems(tableMetadata.TableName, updateBatch.GetCamlUpdateBatch()).GetXElement();
             
-            return new SyncContext();
+            ListServices.Dispose();
         }
 
         public override void Dispose()
@@ -59,11 +170,130 @@ namespace SpSync.Data.Server
 
             foreach (SyncTableMetadata tableMetadata in groupMetadata.TablesMetadata)
             {
-                DataTable table = GetListItemFromAnchor(tableMetadata, syncSession, context);
+                DataTable table = GetChanges(tableMetadata, syncSession, context);
                 dataSet.Tables.Add(table);
             }
 
             return context;
+        }
+
+        private DataTable GetChanges(SyncTableMetadata tableMetadata, SyncSession syncSession, SyncContext syncContext)
+        {
+            // the syncSessions.SyncParameters can be used to filter fields using the viewFields (to filter columns)
+            // and the contains to filter rows. Of course a caml query can be constructed
+
+            DataTable inserts = Schema.SchemaDataSet.Tables[tableMetadata.TableName].Clone();
+            DataTable deletes = Schema.SchemaDataSet.Tables[tableMetadata.TableName].Clone();
+
+            SpSyncAnchor anchor = SpSyncAnchor.GetAnchor(tableMetadata.LastReceivedAnchor.Anchor);
+
+            QueryOptions options = new QueryOptions() { PagingToken = anchor.PagingToken };
+            ChangeBatch changes = new ChangeBatch();
+
+            using (SpWS.Lists listsServices = new SpSync.Data.Server.SpWS.Lists())
+            {
+
+                listsServices.Credentials = this.ServiceCredentials;
+
+                XElement result =
+                    listsServices.GetListItemChangesSinceToken(
+                        tableMetadata.TableName,
+                        null,
+                        null,
+                        new XmlDocument().CreateElement("ViewFields"),
+                        BatchSize.ToString(),
+                        options.GetCamlQueryOptions(),
+                        anchor.NextChangesToken,
+                        null).GetXElement();
+
+                changes = result.GetCamlChangeBatch();
+                
+            }
+
+            changes.CurrentChangeBatch = anchor.NextChangesToken;
+
+            if (changes.HasSchemaChanges())
+            {
+                // Schema has  changed
+                // need full resynchronization
+            }
+
+            foreach (ChangeItem changeItem in changes.ChangeLog)
+            {
+                switch (changeItem.Command)
+                {
+                    case "Delete":
+                    case "MoveAway":
+                        int ID = changeItem.ListItemID;
+                        DataRow row = deletes.NewRow();
+                        row[deletes.PrimaryKey[0]] = ID;
+                        deletes.Rows.Add(row);
+                        break;
+                    case "InvalidToken":
+                    case "Restore":
+                        // full resynchronization
+                        SyncTracer.Warning("Unknown ChangeType " + changeItem.Command);
+                        break;
+                    case "SystemUpdate":
+                    case "Rename":
+                    case "":
+                        break;
+                }
+            }
+            deletes.AcceptChanges();
+
+            SpSyncAnchor maxAnchor = 
+                anchor.NextChangesAnchor != null ? 
+                    anchor.NextChangesAnchor 
+                    : new SpSyncAnchor(changes.NextChangeBatch, ChangeBatch.FirstPage);
+
+            SpSyncAnchor newAnchor = 
+                changes.HasMoreData() ?
+                    new SpSyncAnchor(changes.CurrentChangeBatch, changes.NextPage, anchor.PageNumber + 1)
+                    : maxAnchor;
+
+            newAnchor.NextChangesAnchor = changes.HasMoreData() ? maxAnchor : null;
+
+            syncContext.NewAnchor =
+                new SyncAnchor(SpSyncAnchor.GetBytes(newAnchor));
+
+            syncContext.MaxAnchor =
+                new SyncAnchor(SpSyncAnchor.GetBytes(maxAnchor));
+
+            syncContext.BatchCount = changes.HasMoreData() ? anchor.PageNumber + 1 : 0;
+
+            if (changes.ChangedItems.ItemCount != 0)
+            {
+                foreach (ListItem item in changes.ChangedItems)
+                {
+                    //DataRow r = inserts.NewRow();
+                    DataRow r = ItemToDataRow(item, inserts.NewRow());
+                    inserts.Rows.Add(r);
+                }
+                inserts.AcceptChanges();
+            }
+
+            SyncTableProgress tableProgress = syncContext.GroupProgress.FindTableProgress(tableMetadata.TableName);
+
+            foreach (DataRow addedRow in inserts.Rows)
+            {
+                addedRow.SetModified();
+                tableProgress.Updates++;
+            }
+
+            foreach (DataRow deletedRow in deletes.Rows)
+            {
+                deletedRow.Delete();
+                tableProgress.Deletes++;
+            }
+
+            
+            inserts.Merge(deletes);
+            
+
+            tableProgress.DataTable = inserts;
+
+            return inserts;
         }
 
         public override SyncSchema GetSchema(Collection<string> tableNames, SyncSession syncSession)
@@ -79,18 +309,14 @@ namespace SpSync.Data.Server
             listsService.Credentials = ServiceCredentials;
 
             XElement result = listsService.GetListCollection().GetXElement();
+            ListCollection lists = result.GetCamlListCollection();
             listsService.Dispose();
-            XNamespace wssNamespace = result.Name.Namespace;
 
-            List<SyncTableInfo> syncTableInfos =
-                (from list in result.Descendants(wssNamespace + "List")
-                 select new SyncTableInfo(list.Attribute("Title").Value, 
-                                          list.Attribute("Description").Value)
-                 ).ToList();
+            IList<SyncTableInfo> syncTableInfos =
+                lists.Select(l => new SyncTableInfo(l.Name, l.Description)).ToList();
 
             Collection<SyncTableInfo> syncCollection = new Collection<SyncTableInfo>(syncTableInfos);
             SyncServerInfo serverInfo = new SyncServerInfo(syncCollection);
-
             return serverInfo;
         }
 
@@ -102,8 +328,10 @@ namespace SpSync.Data.Server
 
             foreach (string table in tableNames)
             {
-                XmlNode node = listsService.GetList(table);
-                DataTable dataTable = GetListSchemaDataTable(node, syncSession);
+                XmlNode n = listsService.GetList(table);
+                DataTable dataTable = GetListSchemaDataTable(
+                    n.GetXElement().GetCamlListDef(), 
+                    syncSession);
                 schemaDataSet.Tables.Add(dataTable);
             }
             
@@ -112,34 +340,14 @@ namespace SpSync.Data.Server
             return schemaDataSet;
         }
 
-        private DataTable GetListSchemaDataTable(XmlNode listDef, SyncSession syncSession)
+        private DataTable GetListSchemaDataTable(ListDef listDef, SyncSession syncSession)
         {
-            XElement node = listDef.GetXElement();
-            XNamespace xmlns = node.Name.Namespace;
+            List<DataColumn> columns = listDef.Fields.Select(f => FieldToDataColumn(f)).ToList();
 
-            var fields = node.Element(xmlns + "Fields").Elements(xmlns + "Field");
-            List<DataColumn> columns =
-                (from field in fields
-                 select new DataColumn(field.Attribute("Name").Value) {
-                    AllowDBNull = field.Attribute("Required") != null ?  field.Attribute("Required").Value.ToUpper() != "YES" : true,
-                    Caption     = field.Attribute("DisplayName") != null ?  field.Attribute("DisplayName").Value : field.Attribute("Name").Value,
-                    ReadOnly    = field.Attribute("ReadOnly") != null ? field.Attribute("ReadOnly").Value.ToUpper() == "YES" : false,
-                    DataType    = field.Attribute("Type") != null ? GetDataType(field.Attribute("Type").Value) : typeof(string)
-                 }).ToList();
+            IEnumerable<string> primaryKeys = new List<string>(new string[] { "GUID" });
 
-            foreach (DataColumn c in columns)
-                if (c.DataType == typeof(string))
-                {
-                    c.ExtendedProperties["ColumnLength"] = 255;
-                }
-            
+            DataTable dataTable = new DataTable(listDef.List.Name);
 
-            IEnumerable<string> primaryKeys = 
-                (from field in fields
-                 where field.Attribute("PrimaryKey") != null && field.Attribute("PrimaryKey").Value.ToUpper() == "TRUE"
-                 select field.Attribute("Name").Value);
-
-            DataTable dataTable = new DataTable(node.Attribute("Title").Value);
             dataTable.Columns.AddRange(columns.ToArray<DataColumn>());
 
             List<DataColumn> primaryColumns = new List<DataColumn>();
@@ -149,6 +357,7 @@ namespace SpSync.Data.Server
                     primaryColumns.Add(c);
             }
             dataTable.PrimaryKey = primaryColumns.ToArray();
+            
             //dataTable.PrimaryKey = .Where(c => primaryKeys.Contains(c.Caption)).ToArray();
             return dataTable;
         }
@@ -172,222 +381,63 @@ namespace SpSync.Data.Server
                 case "Note":
                 case "URL":
                     return typeof(string);
+                case "Guid":
+                    return typeof(System.Guid);
                 default:
                     return typeof(string);
             }
         }
 
-        private DataTable GetListItemFromAnchor(SyncTableMetadata tableMetadata, SyncSession syncSession, SyncContext syncContext)
+        #region DataSet helpers
+
+        private DataColumn FieldToDataColumn(Field f)
         {
-            DataTable inserts = Schema.SchemaDataSet.Tables[tableMetadata.TableName].Clone();
-            DataTable deletes = Schema.SchemaDataSet.Tables[tableMetadata.TableName].Clone();
-            
-            bool moreChanges = false;
-
-            SpWS.Lists listsServices = new SpSync.Data.Server.SpWS.Lists();
-            listsServices.Credentials = System.Net.CredentialCache.DefaultCredentials;
-            
-            string token = 
-                tableMetadata.LastReceivedAnchor.Anchor == null ? null : 
-                System.Text.ASCIIEncoding.ASCII.GetString(tableMetadata.LastReceivedAnchor.Anchor);
-
-            // create the empty viewFields in order to retrieve the full set of fields
-            XElement viewFields = new XElement("ViewFields");
-            /*
-            foreach (DataColumn column in inserts.Columns)
+            DataColumn c = new DataColumn(f.Name)
             {
-                var fieldref = new XElement("FieldRef");
-                fieldref.SetAttributeValue("Name", column.ColumnName);
-                viewFields.Add(fieldref);
-            }
-            */
+                AllowDBNull = true, //!f.IsRequired,
+                Caption = f.DisplayName,
+                ReadOnly = f.IsReadOnly,
+                DataType = GetDataType(f.FieldType),
+            };
 
-            XElement result = 
-                listsServices.GetListItemChangesSinceToken(
-                    tableMetadata.TableName, 
-                    null, 
-                    null,
-                    viewFields.GetXmlNode(), 
-                    null, 
-                    null, 
-                    token, 
-                    null).GetXElement();
+            if (c.DataType == typeof(string))
+                c.ExtendedProperties["ColumnLength"] = 255;
 
-            listsServices.Dispose();
+            c.ExtendedProperties["FieldType"] = f.FieldType;
 
+            if (f.Name == "GUID")
+                c.ExtendedProperties["RowGuidCol"] = true;
 
-            XNamespace dataNs = result.GetNamespaceOfPrefix("rs");
-            XNamespace rowNs  = result.GetNamespaceOfPrefix("z");
-            XNamespace defaultNs = result.GetDefaultNamespace();
-
-            XElement changes = result.Element(defaultNs + "Changes");
-
-            string newToken = changes.Attribute("LastChangeToken").Value;
-            int MinTimeBetweenSyncs = Int32.Parse(result.Attribute("MinTimeBetweenSyncs").Value);
-            int RecommendedTimeBetweenSyncs = Int32.Parse(result.Attribute("RecommendedTimeBetweenSyncs").Value);
-
-            if (changes.Element(defaultNs + "List") != null)
-            {
-                //Schema has  changed
-                // need full resynchronization
-            }
-            else
-            {
-                IEnumerable<XElement> changeLog = changes.Elements(defaultNs + "Id");
-
-                foreach (XElement changeItem in changeLog)
-                {
-                    switch (changeItem.Attribute("ChangeType").Value)
-                    { 
-                        case "Delete":
-                        case "MoveAway":
-                            string ID = changeItem.Value;
-                            DataRow row = deletes.NewRow();
-                            row[deletes.PrimaryKey[0]] = ID;
-                            deletes.Rows.Add(row);
-                            break;
-                        case "InvalidToken":
-                        case "Restore":
-                            // full resynchronization
-                            SyncTracer.Warning("Unknown ChangeType " + changeItem.Attribute("ChangeType").Value);
-                            break;
-                        case "SystemUpdate":
-                        case "Rename":
-                        case "":
-                            break;
-                    }
-                }
-                deletes.AcceptChanges();
-            }
-
-            if (changes.Attribute("MoreChanges") != null)
-            {
-                moreChanges = changes.Attribute("MoreChanges").Value.ToUpper() == "TRUE";
-            }
-
-            syncContext.NewAnchor = new SyncAnchor(System.Text.ASCIIEncoding.ASCII.GetBytes(newToken));
-
-            // get added or (updated) rows
-
-            int itemCount = Int32.Parse(result.Element(dataNs + "data").Attribute("ItemCount").Value);
-            if (itemCount != 0)
-            {
-                IEnumerable<XElement> rows = (from row in result.Element(dataNs + "data").Elements(rowNs + "row") select row);
-
-                foreach (var row in rows)
-                {
-                    IEnumerable<XAttribute> cols =
-                        (from col in row.Attributes()
-                         where col.Name.LocalName.StartsWith("ows_", true, null)
-                         select col);
-
-                    DataRow dataRow = inserts.NewRow();
-                    foreach (XAttribute col in cols)
-                    {
-                        string colName = col.Name.LocalName.Substring("ows_".Length);
-                        if (inserts.Columns.Contains(colName))
-                        {
-                            try
-                            {
-                                dataRow[colName] = col.Value;
-                            }
-                            catch (Exception ) { }
-                        }
-                        else
-                            SyncTracer.Warning("Omitting column " + colName);
-                    }
-                    inserts.Rows.Add(dataRow);
-                }
-                inserts.AcceptChanges();
-            }
-
-            SyncTableProgress tableProgress = syncContext.GroupProgress.FindTableProgress(tableMetadata.TableName);
-
-            foreach (DataRow addedRow in inserts.Rows)
-            {
-                addedRow.SetModified();
-                tableProgress.Updates++;
-            }
-
-            foreach (DataRow deletedRow in deletes.Rows)
-            {
-                deletedRow.Delete();
-                tableProgress.Deletes++;
-            }
-
-            inserts.Merge(deletes);
-
-            tableProgress.DataTable = inserts;
-
-
-            return inserts;
+            return c;
         }
 
-        private void ApplyChangesToTable(SyncTableMetadata tableMetadata, DataSet dataSet, SyncSession syncSession)
+        private DataRow ItemToDataRow(ListItem item, DataRow r)
         {
-            SpWS.Lists ListServices = new SpSync.Data.Server.SpWS.Lists();
-            ListServices.Credentials = ServiceCredentials;
-            DataTable dataTable = dataSet.Tables[tableMetadata.TableName];
-
-            DataTable deletes = dataTable.GetChanges(DataRowState.Deleted);
-            
-            XElement batch = new XElement("Batch");
-            int i = 0;
-            if (deletes != null)
-            {
-                foreach (DataRow deletedRow in deletes.Rows)
+            foreach (var kvp in item.Fields)
+                try
                 {
-                    i++;
-                    XElement methoditem = new XElement("Method");
-                    methoditem.SetAttributeValue("Cmd", "Delete");
-                    //methoditem.SetAttributeValue("ID", deletedRow["ID", DataRowVersion.Original]);
-                    methoditem.SetAttributeValue("ID", i.ToString());
-                    XElement fieldId = new XElement("Field");
-                    fieldId.SetAttributeValue("Name", "ID");
-                    fieldId.Value = deletedRow["ID", DataRowVersion.Original].ToString();
-                    methoditem.Add(fieldId);
-                    /*
-                    foreach (DataColumn col in deletes.Columns)
+                    Type columnType =  r.Table.Columns[kvp.Key].DataType;
+                    if (columnType == typeof(bool))
+                        r[kvp.Key] = kvp.Value == "1" ? true : false;
+                    else if (columnType == typeof(int))
                     {
-                        XElement field = new XElement("Field");
-                        field.SetAttributeValue("Name", col.ColumnName);
-                        field.Value = deletedRow[col].ToString();
-                        methoditem.Add(field);
+                        string[] s = kvp.Value.Split(".".ToCharArray(),2);
+                        
+                        r[kvp.Key] = Int32.Parse(s.Length == 0 ? kvp.Value : s[0]);
                     }
-                    */
-                    batch.Add(methoditem);
+                    else
+                        r[kvp.Key] = kvp.Value;
                 }
-            }
-
-            DataTable updates = dataTable.GetChanges(DataRowState.Modified);
-            if (updates != null)
-            {
-                foreach (DataRow updatedRow in updates.Rows)
+                catch (Exception e)
                 {
-                    i++;
-                    XElement methoditem = new XElement("Method");
-                    methoditem.SetAttributeValue("Cmd", "Update");
-                    //methoditem.SetAttributeValue("ID", deletedRow["ID", DataRowVersion.Original]);
-                    methoditem.SetAttributeValue("ID", i.ToString());
-                    //XElement fieldId = new XElement("Field");
-                    //fieldId.SetAttributeValue("Name", "ID");
-                    //fieldId.Value = updatedRow["ID", DataRowVersion.Original].ToString();
-                    //methoditem.Add(fieldId);
-
-                    foreach (DataColumn col in updates.Columns)
-                    {
-                        XElement field = new XElement("Field");
-                        field.SetAttributeValue("Name", col.ColumnName);
-                        field.Value = updatedRow[col].ToString();
-                        methoditem.Add(field);
-                    }
-
-                    batch.Add(methoditem);
+                    //SyncTracer.Warning(e.Message);
+                    System.Diagnostics
+                        .Trace.TraceWarning(kvp.Key + " " + e.Message) ;
                 }
-            }
-
-            XmlNode result = ListServices.UpdateListItems(tableMetadata.TableName, batch.GetXmlNode());
-            ListServices.Dispose();
+            return r;
         }
+
+        #endregion
+
     }
 }

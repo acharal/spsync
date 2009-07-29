@@ -5,6 +5,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpSync.Data.Server", "SpSyn
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpWSTest", "SpWSTest\SpWSTest.csproj", "{DAEF1044-035D-4488-B807-38AF057A2711}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleSpSite", "SampleSpSite\SampleSpSite.csproj", "{E510E603-7BE7-4E15-BFB7-49D5903A2A7A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpCaml.DataAccess", "SpCaml.DataAccess\SpCaml.DataAccess.csproj", "{82751D53-D545-4BA6-A63E-B2BD82133164}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpCaml.DataAccess.Native", "SpCaml.DataAccess.Native\SpCaml.DataAccess.Native.csproj", "{043A1823-59A3-49D4-BEA0-5A3999F9A405}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,6 +25,20 @@ Global
 		{DAEF1044-035D-4488-B807-38AF057A2711}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DAEF1044-035D-4488-B807-38AF057A2711}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DAEF1044-035D-4488-B807-38AF057A2711}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E510E603-7BE7-4E15-BFB7-49D5903A2A7A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E510E603-7BE7-4E15-BFB7-49D5903A2A7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E510E603-7BE7-4E15-BFB7-49D5903A2A7A}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{E510E603-7BE7-4E15-BFB7-49D5903A2A7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E510E603-7BE7-4E15-BFB7-49D5903A2A7A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E510E603-7BE7-4E15-BFB7-49D5903A2A7A}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{82751D53-D545-4BA6-A63E-B2BD82133164}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{82751D53-D545-4BA6-A63E-B2BD82133164}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{82751D53-D545-4BA6-A63E-B2BD82133164}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{82751D53-D545-4BA6-A63E-B2BD82133164}.Release|Any CPU.Build.0 = Release|Any CPU
+		{043A1823-59A3-49D4-BEA0-5A3999F9A405}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{043A1823-59A3-49D4-BEA0-5A3999F9A405}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{043A1823-59A3-49D4-BEA0-5A3999F9A405}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{043A1823-59A3-49D4-BEA0-5A3999F9A405}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

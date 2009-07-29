@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Elements Id="33239c5d-2422-4ece-a4fb-38c484e79a1f" xmlns="http://schemas.microsoft.com/sharepoint/">
+  <ContentType ID="0x0100106b9c9769a14a1dbedede77d8635293"
+               Name="CT3"
+               Group="Development"
+               Description="Developing Content Type"
+               Version="0">
+    <FieldRefs>
+
+      <FieldRef ID="{ae069f25-3ac2-4256-b9c3-15dbc15da0e0}" Name="GUID" ReadOnly ="FALSE" Hidden="FALSE"/>
+
+    </FieldRefs>
+  </ContentType>
+  <!--
+  <Field ID="{081c4f51-c9a7-46fb-a31e-5deaaf98ee0d}"
+         Type="Text"
+         Name="CT2Field"
+         DisplayName="CT2 Field"
+         StaticName="CT2Field"
+         Hidden="FALSE"
+         Required="FALSE"
+         Sealed="FALSE" />
+  -->
+</Elements>

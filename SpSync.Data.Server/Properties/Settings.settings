@@ -3,7 +3,7 @@
   <Profiles />
   <Settings>
     <Setting Name="SpSync_Data_Server_SpWS_Lists" Type="(Web Service URL)" Scope="Application">
-      <Value Profile="(Default)">http://win-3e3tor3z18n/_vti_bin/Lists.asmx</Value>
+      <Value Profile="(Default)">http://localhost/_vti_bin/Lists.asmx</Value>
     </Setting>
   </Settings>
 </SettingsFile>

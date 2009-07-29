@@ -42,5 +42,15 @@ namespace SpWSTest.Properties {
                 return ((string)(this["testConnectionString"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
+        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=|DataDirectory|\\bin\\Debug\\test.sdf")]
+        public string testConnectionString1 {
+            get {
+                return ((string)(this["testConnectionString1"]));
+            }
+        }
     }
 }
