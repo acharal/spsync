@@ -1,5 +1,0 @@
-C:\Users\Administrator\Desktop\spsync\trunk\SpCaml.DataAccess\bin\Debug\SpCaml.DataAccess.dll
-C:\Users\Administrator\Desktop\spsync\trunk\SpCaml.DataAccess\bin\Debug\SpCaml.DataAccess.pdb
-C:\Users\Administrator\Desktop\spsync\trunk\SpCaml.DataAccess\obj\Debug\ResolveAssemblyReference.cache
-C:\Users\Administrator\Desktop\spsync\trunk\SpCaml.DataAccess\obj\Debug\SpCaml.DataAccess.dll
-C:\Users\Administrator\Desktop\spsync\trunk\SpCaml.DataAccess\obj\Debug\SpCaml.DataAccess.pdb
