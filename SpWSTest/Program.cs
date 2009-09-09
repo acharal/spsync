@@ -18,12 +18,12 @@ namespace SpWSTest
 
             System.Diagnostics.Trace.Listeners.Add(new System.Diagnostics.ConsoleTraceListener());
             SpSync.Data.Server.SpServerSyncProvider prov = new SpSync.Data.Server.SpServerSyncProvider();
-            prov.BatchSize = 100;
+            prov.BatchSize = 500;
             SyncServerInfo info = prov.GetServerInfo(null);
             Microsoft.Synchronization.Data.SqlServerCe.SqlCeClientSyncProvider client = new Microsoft.Synchronization.Data.SqlServerCe.SqlCeClientSyncProvider(Settings.Default.testConnectionString, true);
             Microsoft.Synchronization.SyncAgent agent = new Microsoft.Synchronization.SyncAgent(client, prov);
             //agent.Configuration.SyncTables.Add("Doctors", SyncDirection.Bidirectional);
-            agent.Configuration.SyncTables.Add("User Information List", SyncDirection.DownloadOnly);
+            agent.Configuration.SyncTables.Add("Accounts", SyncDirection.DownloadOnly);
             agent.SessionProgress += new EventHandler<Microsoft.Synchronization.SessionProgressEventArgs>(agent_SessionProgress);
             agent.StateChanged += new EventHandler<Microsoft.Synchronization.SessionStateChangedEventArgs>(agent_StateChanged);
             SyncStatistics stats = agent.Synchronize();
