@@ -1,0 +1,126 @@
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{E84E79E5-A86C-4FD6-934E-8FF08D3DDC1C}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SpCaml.Mobile.DataAccess</RootNamespace>
+    <AssemblyName>SpCaml.Mobile.DataAccess</AssemblyName>
+    <ProjectTypeGuids>{4D628B5B-2FBC-4AA6-8C16-197242AEB884};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <PlatformFamilyName>PocketPC</PlatformFamilyName>
+    <PlatformID>b2c48bd2-963d-4549-9169-1fa021dce484</PlatformID>
+    <OSVersion>5.2</OSVersion>
+    <DeployDirSuffix>SpCaml.Mobile.DataAccess</DeployDirSuffix>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <NativePlatformName>Windows Mobile 6 Professional SDK</NativePlatformName>
+    <FormFactorID>
+    </FormFactorID>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;$(PlatformFamilyName)</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <FileAlignment>512</FileAlignment>
+    <WarningLevel>4</WarningLevel>
+    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE;$(PlatformFamilyName)</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <FileAlignment>512</FileAlignment>
+    <WarningLevel>4</WarningLevel>
+    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Web.Services" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\SpCaml.DataAccess\Caml\Caml.cs">
+      <Link>Caml\Caml.cs</Link>
+    </Compile>
+    <Compile Include="..\SpCaml.DataAccess\Caml\ChangeBatch.cs">
+      <Link>Caml\ChangeBatch.cs</Link>
+    </Compile>
+    <Compile Include="..\SpCaml.DataAccess\Caml\ChangeItem.cs">
+      <Link>Caml\ChangeItem.cs</Link>
+    </Compile>
+    <Compile Include="..\SpCaml.DataAccess\Caml\ChangeLog.cs">
+      <Link>Caml\ChangeLog.cs</Link>
+    </Compile>
+    <Compile Include="..\SpCaml.DataAccess\Caml\Field.cs">
+      <Link>Caml\Field.cs</Link>
+    </Compile>
+    <Compile Include="..\SpCaml.DataAccess\Caml\List.cs">
+      <Link>Caml\List.cs</Link>
+    </Compile>
+    <Compile Include="..\SpCaml.DataAccess\Caml\ListCollection.cs">
+      <Link>Caml\ListCollection.cs</Link>
+    </Compile>
+    <Compile Include="..\SpCaml.DataAccess\Caml\ListDef.cs">
+      <Link>Caml\ListDef.cs</Link>
+    </Compile>
+    <Compile Include="..\SpCaml.DataAccess\Caml\ListItem.cs">
+      <Link>Caml\ListItem.cs</Link>
+    </Compile>
+    <Compile Include="..\SpCaml.DataAccess\Caml\ListItemCollection.cs">
+      <Link>Caml\ListItemCollection.cs</Link>
+    </Compile>
+    <Compile Include="..\SpCaml.DataAccess\Caml\QueryOptions.cs">
+      <Link>Caml\QueryOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\SpCaml.DataAccess\Caml\UpdateBatch.cs">
+      <Link>Caml\UpdateBatch.cs</Link>
+    </Compile>
+    <Compile Include="..\SpCaml.DataAccess\Caml\UpdateItem.cs">
+      <Link>Caml\UpdateItem.cs</Link>
+    </Compile>
+    <Compile Include="..\SpCaml.DataAccess\Interface\ISpListAdapter.cs">
+      <Link>Interfaces\ISpListAdapter.cs</Link>
+    </Compile>
+    <Compile Include="..\SpCaml.DataAccess\Webservice\Lists.cs">
+      <Link>Webservice\Lists.cs</Link>
+    </Compile>
+    <Compile Include="..\SpCaml.DataAccess\Webservice\SpListAdapter.cs">
+      <Link>Webservice\SpListAdapter.cs</Link>
+    </Compile>
+    <Compile Include="..\SpCaml.DataAccess\XmlExtensions.cs">
+      <Link>XmlExtensions.cs</Link>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CompactFramework.CSharp.targets" />
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}">
+        <HostingProcess disable="1" />
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

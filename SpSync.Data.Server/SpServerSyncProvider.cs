@@ -9,6 +9,7 @@ using System.Xml;
 using System.Xml.Linq;
 using SpCaml.DataAccess.Caml;
 using SpCaml.DataAccess.Interface;
+using SpCaml.DataAccess.Implementation.WS;
 
 namespace SpSync.Data.Server
 {
@@ -33,9 +34,13 @@ namespace SpSync.Data.Server
                 if (_schema != null)
                     return _schema;
                 else
-                    return GetSchema( 
-                                new Collection<string>(GetServerInfo(null).TablesInfo.Select( t => t.TableName).ToArray()),
-                                null);
+                {
+                    _schema = 
+                    GetSchema(
+                               new Collection<string>(GetServerInfo(null).TablesInfo.Select(t => t.TableName).ToArray()),
+                               null);
+                    return _schema;
+                }
             }
 
             set { _schema = value; }
@@ -76,7 +81,7 @@ namespace SpSync.Data.Server
 
         private void ApplyChanges(SyncTableMetadata tableMetadata, DataSet dataSet, SyncSession syncSession)
         {
-            SpWS.Lists ListServices = new SpSync.Data.Server.SpWS.Lists();
+            Lists ListServices = new Lists();
             ListServices.Credentials = ServiceCredentials;
             DataTable dataTable = dataSet.Tables[tableMetadata.TableName];
 
@@ -190,7 +195,7 @@ namespace SpSync.Data.Server
             QueryOptions options = new QueryOptions() { PagingToken = anchor.PagingToken };
             ChangeBatch changes = new ChangeBatch();
 
-            using (SpWS.Lists listsServices = new SpSync.Data.Server.SpWS.Lists())
+            using (Lists listsServices = new Lists())
             {
 
                 listsServices.Credentials = this.ServiceCredentials;
@@ -305,7 +310,7 @@ namespace SpSync.Data.Server
 
         public override SyncServerInfo GetServerInfo(SyncSession syncSession)
         {
-            SpWS.Lists listsService = new SpSync.Data.Server.SpWS.Lists();
+            Lists listsService = new Lists();
             listsService.Credentials = ServiceCredentials;
 
             XElement result = listsService.GetListCollection().GetXElement();
@@ -322,7 +327,7 @@ namespace SpSync.Data.Server
 
         private DataSet GetSchemaDataSet(Collection<string> tableNames, SyncSession syncSession)
         {
-            SpWS.Lists listsService = new SpSync.Data.Server.SpWS.Lists();
+            Lists listsService = new Lists();
             listsService.Credentials = ServiceCredentials;
             DataSet schemaDataSet = new DataSet();
 
@@ -421,7 +426,9 @@ namespace SpSync.Data.Server
                         r[kvp.Key] = kvp.Value == "1" ? true : false;
                     else if (columnType == typeof(int))
                     {
-                        string[] s = kvp.Value.Split(".".ToCharArray(),2);
+                        //string[] s = kvp.Value.Split(".".ToCharArray(),2);
+                        // changes for favor of CF
+                        string[] s = kvp.Value.Split(".".ToCharArray());
                         
                         r[kvp.Key] = Int32.Parse(s.Length == 0 ? kvp.Value : s[0]);
                     }
@@ -431,8 +438,8 @@ namespace SpSync.Data.Server
                 catch (Exception e)
                 {
                     //SyncTracer.Warning(e.Message);
-                    System.Diagnostics
-                        .Trace.TraceWarning(kvp.Key + " " + e.Message) ;
+                    //System.Diagnostics
+                    //    .Trace.TraceWarning(kvp.Key + " " + e.Message) ;
                 }
             return r;
         }

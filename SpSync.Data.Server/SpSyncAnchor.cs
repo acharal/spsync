@@ -2,18 +2,33 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Runtime.Serialization.Formatters.Binary;
+//using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.Serialization;
 using System.IO;
+using System.Xml;
+using System.Xml.Serialization;
 
 namespace SpSync.Data.Server
 {
-    [Serializable]
+    [XmlRoot("anc")]
     public class SpSyncAnchor
     {
+        [XmlAttribute("pt")]
         public string PagingToken;
+        
+        [XmlAttribute("nt")]
         public string NextChangesToken;
+        
+        [XmlAttribute("p")]
         public int PageNumber;
+
+        [XmlElement("nanc")]
         public SpSyncAnchor NextChangesAnchor;
+
+        public SpSyncAnchor()
+        { 
+        
+        }
 
         public SpSyncAnchor(string changeToken)
         {
@@ -38,9 +53,9 @@ namespace SpSync.Data.Server
 
         public static byte[] GetBytes(SpSyncAnchor anchor)
         {
-            BinaryFormatter f = new BinaryFormatter();
+            XmlSerializer ser = new XmlSerializer(typeof(SpSyncAnchor));
             MemoryStream s = new MemoryStream();
-            f.Serialize(s, anchor);
+            ser.Serialize(s, anchor);
             return s.GetBuffer();
         }
 
@@ -48,9 +63,9 @@ namespace SpSync.Data.Server
         {
             if (buffer != null)
             {
-                BinaryFormatter f = new BinaryFormatter();
+                XmlSerializer ser = new XmlSerializer(typeof(SpSyncAnchor));
                 MemoryStream s = new MemoryStream(buffer);
-                return (SpSyncAnchor)f.Deserialize(s);
+                return (SpSyncAnchor)ser.Deserialize(s);
             }
             else
             {

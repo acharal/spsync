@@ -5,3 +5,5 @@ C:\Users\Administrator\Desktop\spsync\trunk\SpCaml.DataAccess.Native\bin\Debug\S
 C:\Users\Administrator\Desktop\spsync\trunk\SpCaml.DataAccess.Native\obj\Debug\ResolveAssemblyReference.cache
 C:\Users\Administrator\Desktop\spsync\trunk\SpCaml.DataAccess.Native\obj\Debug\SpCaml.DataAccess.Native.dll
 C:\Users\Administrator\Desktop\spsync\trunk\SpCaml.DataAccess.Native\obj\Debug\SpCaml.DataAccess.Native.pdb
+C:\Documents and Settings\Administrator\Desktop\spsync\trunk\SpCaml.DataAccess.Native\obj\Debug\ResolveAssemblyReference.cache
+C:\Documents and Settings\Administrator\Desktop\spsync\trunk\SpCaml.DataAccess.Native\obj\Debug\SpCaml.DataAccess.Native.pdb
