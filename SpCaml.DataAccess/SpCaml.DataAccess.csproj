@@ -48,6 +48,7 @@
   <ItemGroup>
     <Compile Include="Caml\Caml.cs" />
     <Compile Include="Caml\ChangeBatch.cs" />
+    <Compile Include="Caml\ChangeCommands.cs" />
     <Compile Include="Caml\ChangeItem.cs" />
     <Compile Include="Caml\ChangeLog.cs" />
     <Compile Include="Caml\Field.cs" />

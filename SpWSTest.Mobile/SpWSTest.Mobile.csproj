@@ -81,11 +81,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Web References\Lists\Reference.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Reference.map</DependentUpon>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="test.sdf">
@@ -97,31 +92,6 @@
       <Project>{43D73E73-54AD-4497-A93C-CEDFF86700F4}</Project>
       <Name>SpSync.Data.Server.Mobile</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <WebReferences Include="Web References\" />
-  </ItemGroup>
-  <ItemGroup>
-    <WebReferenceUrl Include="http://testintranet/crm/_vti_bin/Lists.asmx%3fwsdl">
-      <UrlBehavior>Static</UrlBehavior>
-      <RelPath>Web References\Lists\</RelPath>
-      <UpdateFromURL>http://testintranet/crm/_vti_bin/Lists.asmx%3fwsdl</UpdateFromURL>
-      <ServiceLocationURL>
-      </ServiceLocationURL>
-      <CachedDynamicPropName>
-      </CachedDynamicPropName>
-      <CachedAppSettingsObjectName>
-      </CachedAppSettingsObjectName>
-      <CachedSettingsPropName>
-      </CachedSettingsPropName>
-    </WebReferenceUrl>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Web References\Lists\Lists.wsdl" />
-    <None Include="Web References\Lists\Reference.map">
-      <Generator>MSDiscoCodeGenerator</Generator>
-      <LastGenOutput>Reference.cs</LastGenOutput>
-    </None>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CompactFramework.CSharp.targets" />
   <ProjectExtensions>

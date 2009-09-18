@@ -6,6 +6,7 @@ using System.Xml.Extensions;
 using SpCaml.DataAccess.Caml;
 using SpCaml.DataAccess.Interface;
 using System.Xml.Linq;
+using System.Web.Services.Protocols;
 
 namespace SpCaml.DataAccess.Implementation.WS
 {
@@ -16,7 +17,8 @@ namespace SpCaml.DataAccess.Implementation.WS
     {
         private Lists listWS;
         
-        private string listName = null;
+        private string _listName = null;
+        private string _spSiteName = null;
 
         private bool fetchInBatches = true;
 
@@ -26,14 +28,37 @@ namespace SpCaml.DataAccess.Implementation.WS
 
         public System.Net.ICredentials Credentials = System.Net.CredentialCache.DefaultCredentials;
 
+        protected virtual Lists ListsService
+        {
+            get { return listWS;  }
+        }
+
         #region ISpListAdapter Members
 
-        public SpListAdapter(string spsite, string list)
+        public SpListAdapter(string spSite, string listName)
         {
-            listName = list;
+            _listName = listName;
+            _spSiteName = spSite;
+
             listWS = new Lists();
-            listWS.Url = spsite + ListasmxSuffix;
+
+            listWS.Url = this.Url;
             listWS.Credentials = Credentials;
+        }
+        
+        public string ListName
+        {
+            get { return _listName; }
+        }
+
+        public string SiteName
+        {
+            get { return _spSiteName; }
+        }
+
+        protected virtual string Url
+        {
+            get { return SiteName + ListasmxSuffix; }
         }
 
         public bool FetchInBatches
@@ -63,9 +88,12 @@ namespace SpCaml.DataAccess.Implementation.WS
             }
         }
 
-        public ListDef GetSchema()
+        public ListDef Schema
         {
-            return listWS.GetList(listName).GetXElement().GetCamlListDef();
+            get
+            {
+                return ListsService.GetList(ListName).GetXElement().GetCamlListDef();
+            }
         }
 
         public ChangeBatch GetChanges(string lastChangeToken, string batchId)
@@ -74,7 +102,7 @@ namespace SpCaml.DataAccess.Implementation.WS
             
             queryOptions.PagingToken = batchId;
             
-            XElement changes = listWS.GetListItemChangesSinceToken(listName, 
+            XElement changes = listWS.GetListItemChangesSinceToken(ListName, 
                 null, 
                 null, 
                 null,
@@ -93,13 +121,13 @@ namespace SpCaml.DataAccess.Implementation.WS
             if (FetchInBatches)
                 queryOptions.PagingToken = batchId;
 
-            XElement result = listWS.GetListItems(listName, null, null, null, BatchCount.ToString(), queryOptions.GetCamlQueryOptions(), null).GetXElement();
+            XElement result = listWS.GetListItems(ListName, null, null, null, BatchCount.ToString(), queryOptions.GetCamlQueryOptions(), null).GetXElement();
             return result.GetCamlListItemCollection();
         }
 
         public void Update(UpdateBatch updateBatch)
         {
-            listWS.UpdateListItems(listName, updateBatch.GetCamlUpdateBatch());
+            listWS.UpdateListItems(ListName, updateBatch.GetCamlUpdateBatch());
         }
 
         #endregion

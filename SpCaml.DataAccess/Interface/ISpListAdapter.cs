@@ -19,10 +19,20 @@ namespace SpCaml.DataAccess.Interface
         int BatchCount { set; get; }
 
         /// <summary>
-        /// Returns the definition of the list
+        /// The name of the list
+        /// </summary>
+        string ListName { get; }
+
+        /// <summary>
+        /// The name of the site
+        /// </summary>
+        string SiteName { get; }
+
+        /// <summary>
+        /// The definition of the list
         /// </summary>
         /// <returns></returns>
-        ListDef GetSchema();
+        ListDef Schema { get; }
 
         /// <summary>
         /// Returns the changes since a token

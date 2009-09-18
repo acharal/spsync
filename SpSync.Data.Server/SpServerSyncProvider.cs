@@ -53,7 +53,7 @@ namespace SpSync.Data.Server
 
         private ISpListAdapter _Adapter = null;
 
-        public ISpListAdapter SpAdapter
+        public ISpListAdapter Adapter
         {
             set {
                 _Adapter = value;
@@ -197,9 +197,7 @@ namespace SpSync.Data.Server
 
             using (Lists listsServices = new Lists())
             {
-
                 listsServices.Credentials = this.ServiceCredentials;
-
                 XElement result =
                     listsServices.GetListItemChangesSinceToken(
                         tableMetadata.TableName,
