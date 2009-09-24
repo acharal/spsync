@@ -28,7 +28,7 @@ namespace SpWSTest.Mobile
             Microsoft.Synchronization.SyncAgent agent = new Microsoft.Synchronization.SyncAgent(client, prov);
             //agent.Configuration.SyncTables.Add("Doctors", SyncDirection.Bidirectional);
             agent.Configuration.SyncTables.Add("Accounts", SyncDirection.DownloadOnly);
-            agent.Configuration.SyncTables.Add("Contacts", SyncDirection.DownloadOnly);
+            //agent.Configuration.SyncTables.Add("Contacts", SyncDirection.DownloadOnly);
             agent.SessionProgress += new EventHandler<Microsoft.Synchronization.SessionProgressEventArgs>(agent_SessionProgress);
             agent.StateChanged += new EventHandler<Microsoft.Synchronization.SessionStateChangedEventArgs>(agent_StateChanged);
             SyncStatistics stats = agent.Synchronize();
