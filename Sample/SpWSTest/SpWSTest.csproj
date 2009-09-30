@@ -96,7 +96,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SpSync.Data.Server\SpSync.Data.Server.csproj">
+    <ProjectReference Include="..\..\Sources\SpSync.Data.Server\SpSync.Data.Server.csproj">
       <Project>{614AAE14-FC12-4CC1-B361-D18E57EBF450}</Project>
       <Name>SpSync.Data.Server</Name>
     </ProjectReference>
