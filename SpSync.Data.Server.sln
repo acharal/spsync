@@ -1,25 +1,25 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpSync.Data.Server", "SpSync.Data.Server\SpSync.Data.Server.csproj", "{614AAE14-FC12-4CC1-B361-D18E57EBF450}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpSync.Data.Server", "Sources\SpSync.Data.Server\SpSync.Data.Server.csproj", "{614AAE14-FC12-4CC1-B361-D18E57EBF450}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpWSTest", "SpWSTest\SpWSTest.csproj", "{DAEF1044-035D-4488-B807-38AF057A2711}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpWSTest", "Sample\SpWSTest\SpWSTest.csproj", "{DAEF1044-035D-4488-B807-38AF057A2711}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpCaml.DataAccess", "SpCaml.DataAccess\SpCaml.DataAccess.csproj", "{82751D53-D545-4BA6-A63E-B2BD82133164}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpCaml.DataAccess", "Sources\SpCaml.DataAccess\SpCaml.DataAccess.csproj", "{82751D53-D545-4BA6-A63E-B2BD82133164}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpCaml.DataAccess.Native", "SpCaml.DataAccess.Native\SpCaml.DataAccess.Native.csproj", "{043A1823-59A3-49D4-BEA0-5A3999F9A405}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpCaml.DataAccess.Native", "Sources\SpCaml.DataAccess.Native\SpCaml.DataAccess.Native.csproj", "{043A1823-59A3-49D4-BEA0-5A3999F9A405}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpWSTest.Mobile", "SpWSTest.Mobile\SpWSTest.Mobile.csproj", "{ECFB0A5F-906E-481E-B059-F1950892DAA6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpWSTest.Mobile", "Sample\SpWSTest.Mobile\SpWSTest.Mobile.csproj", "{ECFB0A5F-906E-481E-B059-F1950892DAA6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpSync.Data.Server.Mobile", "SpSync.Data.Server.Mobile\SpSync.Data.Server.Mobile.csproj", "{43D73E73-54AD-4497-A93C-CEDFF86700F4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpSync.Data.Server.Mobile", "Sources\SpSync.Data.Server.Mobile\SpSync.Data.Server.Mobile.csproj", "{43D73E73-54AD-4497-A93C-CEDFF86700F4}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Mobile 6", "Mobile 6", "{2B8D14E1-7A0F-466C-9D7F-BD2E67FA5D7F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Desktop", "Desktop", "{DE09D1B6-FC0B-408A-B21A-FCE98016DABB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpCaml.DataAccess.Mobile", "SpCaml.DataAccess.Mobile\SpCaml.DataAccess.Mobile.csproj", "{E84E79E5-A86C-4FD6-934E-8FF08D3DDC1C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpCaml.DataAccess.Mobile", "Sources\SpCaml.DataAccess.Mobile\SpCaml.DataAccess.Mobile.csproj", "{E84E79E5-A86C-4FD6-934E-8FF08D3DDC1C}"
 EndProject
-Project("{B900F1C2-3D47-4FEC-85B3-04AAF18C3634}") = "MobileSetup", "MobileSetup\MobileSetup.vddproj", "{C406B40D-BC01-4D47-AC15-F6EF8D7D2CF8}"
+Project("{B900F1C2-3D47-4FEC-85B3-04AAF18C3634}") = "MobileSetup", "Setup\MobileSetup\MobileSetup.vddproj", "{C406B40D-BC01-4D47-AC15-F6EF8D7D2CF8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
