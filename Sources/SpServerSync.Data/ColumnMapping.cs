@@ -5,7 +5,10 @@ using System.Text;
 
 namespace SpServerSync.Data
 {
-    public class ApplyingChangesEventArgs : EventArgs
+    public class ColumnMapping
     {
+        public string ClientColumn;
+
+        public string ServerColumn;
     }
 }
