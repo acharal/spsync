@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
 using System.Xml;
+using System.Collections.Generic;
 
 namespace Sp.Data
 {
@@ -8,15 +9,21 @@ namespace Sp.Data
     {
         private XmlReader reader;
 
+        private IDictionary<string, string> currentRecord;
+
+        DataTable dt = new DataTable();
+
         public SpDataReader(XmlReader xmlReader)
         {
+            reader = xmlReader;
+            dt.ReadXml(xmlReader);
         }
 
         #region IDataReader Members
 
         public void Close()
         {
-            throw new NotImplementedException();
+            reader.Close();
         }
 
         public int Depth
@@ -31,22 +38,58 @@ namespace Sp.Data
 
         public bool IsClosed
         {
-            get { throw new NotImplementedException(); }
+            get {
+                return reader.ReadState == ReadState.Closed;
+            }
         }
 
         public bool NextResult()
         {
-            throw new NotImplementedException();
+            return true;
         }
 
         public bool Read()
         {
-            throw new NotImplementedException();
+            try
+            {
+                var currentRecord = ParseRecord();
+
+                return true;
+            }
+            catch (Exception )
+            {
+                return false;
+            }
         }
 
         public int RecordsAffected
         {
-            get { throw new NotImplementedException(); }
+            get { return 0; }
+        }
+
+        private IDictionary<string,string> ParseRecord()
+        {
+            Dictionary<string, string> record = new Dictionary<string, string>();
+            
+            reader.ReadStartElement("row", "z");
+
+            reader.MoveToFirstAttribute();
+
+            int lengthToSkip = "ows_".Length;
+
+            if (reader.HasAttributes)
+            {
+                // reader.HasAttributes
+                while (reader.MoveToNextAttribute())
+                {
+                    if (reader.Name.StartsWith("ows_"))
+                        record[reader.Name.Substring(lengthToSkip)] = reader.Value;
+                }
+            }
+
+            reader.ReadEndElement();
+
+            return record;
         }
 
         #endregion

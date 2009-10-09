@@ -83,24 +83,29 @@ namespace SpServerSync.Data
             throw new NotImplementedException();
         }
 
-        public DataTable SelectIncrementalInserts()
+        public DataTable SelectIncrementalInserts(SpSyncAnchor anchor)
         {
             throw new NotImplementedException();
         }
 
-        public DataTable SelectIncrementalUpdates()
+        public DataTable SelectIncrementalUpdates(SpSyncAnchor anchor)
         {
             throw new NotImplementedException();
         }
 
-        public DataTable SelectIncrementalDeletes()
+        public DataTable SelectIncrementalDeletes(SpSyncAnchor anchor)
         {
             throw new NotImplementedException();
         }
 
-        public void Update( ){ }
+        public void Update(DataTable table)
+        {
+        
+        }
 
-        public void Delete() { } 
-
+        public void Delete(DataTable table)
+        {
+        
+        }
     }
 }

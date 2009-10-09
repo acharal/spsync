@@ -48,12 +48,58 @@
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Web.Services" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\Sp.Data\Caml\Caml.cs">
+      <Link>Caml\Caml.cs</Link>
+    </Compile>
+    <Compile Include="..\Sp.Data\Caml\ChangeBatch.cs">
+      <Link>Caml\ChangeBatch.cs</Link>
+    </Compile>
+    <Compile Include="..\Sp.Data\Caml\ChangeCommands.cs">
+      <Link>Caml\ChangeCommands.cs</Link>
+    </Compile>
+    <Compile Include="..\Sp.Data\Caml\ChangeItem.cs">
+      <Link>Caml\ChangeItem.cs</Link>
+    </Compile>
+    <Compile Include="..\Sp.Data\Caml\ChangeLog.cs">
+      <Link>Caml\ChangeLog.cs</Link>
+    </Compile>
+    <Compile Include="..\Sp.Data\Caml\Field.cs">
+      <Link>Caml\Field.cs</Link>
+    </Compile>
+    <Compile Include="..\Sp.Data\Caml\List.cs">
+      <Link>Caml\List.cs</Link>
+    </Compile>
+    <Compile Include="..\Sp.Data\Caml\ListCollection.cs">
+      <Link>Caml\ListCollection.cs</Link>
+    </Compile>
+    <Compile Include="..\Sp.Data\Caml\ListDef.cs">
+      <Link>Caml\ListDef.cs</Link>
+    </Compile>
+    <Compile Include="..\Sp.Data\Caml\ListItem.cs">
+      <Link>Caml\ListItem.cs</Link>
+    </Compile>
+    <Compile Include="..\Sp.Data\Caml\ListItemCollection.cs">
+      <Link>Caml\ListItemCollection.cs</Link>
+    </Compile>
+    <Compile Include="..\Sp.Data\Caml\QueryOptions.cs">
+      <Link>Caml\QueryOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\Sp.Data\Caml\UpdateBatch.cs">
+      <Link>Caml\UpdateBatch.cs</Link>
+    </Compile>
+    <Compile Include="..\Sp.Data\Caml\UpdateItem.cs">
+      <Link>Caml\UpdateItem.cs</Link>
+    </Compile>
+    <Compile Include="..\Sp.Data\Lists.cs">
+      <Link>Lists.cs</Link>
+    </Compile>
     <Compile Include="..\Sp.Data\SpCommand.cs">
       <Link>SpCommand.cs</Link>
     </Compile>
@@ -65,9 +111,6 @@
     </Compile>
     <Compile Include="..\Sp.Data\SpTransaction.cs">
       <Link>SpTransaction.cs</Link>
-    </Compile>
-    <Compile Include="..\Sp.Data\wss.cs">
-      <Link>wss.cs</Link>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
