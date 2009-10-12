@@ -25,32 +25,32 @@ namespace SpServerSync.Data
         /// <summary>
         /// Occurs before all changes to be applied to the client for a synchronization group are selected from the server.
         /// </summary>
-        public EventHandler<SelectingChangesEventArgs> SelectingChanges;
+        public event EventHandler<SelectingChangesEventArgs> SelectingChanges;
         
         /// <summary>
         /// Occurs after all changes to be applied to the client for a synchronization group are selected from the server.
         /// </summary>
-        public EventHandler<ChangesSelectedEventArgs> ChangesSelected;
+        public event EventHandler<ChangesSelectedEventArgs> ChangesSelected;
         
         /// <summary>
         /// Occurs before changes are applied at the server for a synchronization group.
         /// </summary>
-        public EventHandler<ApplyingChangesEventArgs> ApplyingChanges;
+        public event EventHandler<ApplyingChangesEventArgs> ApplyingChanges;
         
         /// <summary>
         /// Occurs after a row fails to be applied at the server.
         /// </summary>
-        public EventHandler<ApplyChangeFailedEventArgs> ApplyChangeFailed;
+        public event EventHandler<ApplyChangeFailedEventArgs> ApplyChangeFailed;
         
         /// <summary>
         /// Occurs after all changes are applied at the server for a synchronization group.
         /// </summary>
-        public EventHandler<ChangesAppliedEventArgs> ChangesApplied;
+        public event EventHandler<ChangesAppliedEventArgs> ChangesApplied;
         
         /// <summary>
         /// Occurs during the selection and application of changes for a synchronization group at the server.
         /// </summary>
-        public EventHandler<SyncProgressEventArgs> SyncProgress;
+        public event EventHandler<SyncProgressEventArgs> SyncProgress;
 
         /// <summary>
         /// Gets or sets the batch size (in rows) that is used by commands that retrieve changes from the server database. 
