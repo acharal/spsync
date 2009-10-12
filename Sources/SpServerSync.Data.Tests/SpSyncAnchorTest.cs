@@ -123,34 +123,6 @@ namespace SpServerSync.Data.Tests
         }
 
         /// <summary>
-        ///A test for GetBytes
-        ///</summary>
-        [TestMethod()]
-        public void GetBytesTest()
-        {
-            SpSyncAnchor anchor = null; // TODO: Initialize to an appropriate value
-            byte[] expected = null; // TODO: Initialize to an appropriate value
-            byte[] actual;
-            actual = SpSyncAnchor.GetBytes(anchor);
-            Assert.AreEqual(expected, actual);
-            Assert.Inconclusive("Verify the correctness of this test method.");
-        }
-
-        /// <summary>
-        ///A test for GetAnchor
-        ///</summary>
-        [TestMethod()]
-        public void GetAnchorTest()
-        {
-            byte[] buffer = null; // TODO: Initialize to an appropriate value
-            SpSyncAnchor expected = null; // TODO: Initialize to an appropriate value
-            SpSyncAnchor actual;
-            actual = SpSyncAnchor.GetAnchor(buffer);
-            Assert.AreEqual(expected, actual);
-            Assert.Inconclusive("Verify the correctness of this test method.");
-        }
-
-        /// <summary>
         ///A test for SpSyncAnchor Constructor
         ///</summary>
         [TestMethod()]

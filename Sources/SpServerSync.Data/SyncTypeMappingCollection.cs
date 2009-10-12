@@ -5,9 +5,21 @@ namespace SpServerSync.Data
 {
     public class SyncTypeMappingCollection : Collection<TypeMapping>
     {
+        public TypeMapping DefaultMapping { set; get; }
+
         public int IndexOfFieldType(string fieldType)
         {
-            throw new NotImplementedException();
+            int i = 0;
+
+            foreach (TypeMapping mapping in this)
+            {
+                if (mapping.FieldType == fieldType)
+                    return i;
+                else
+                    i++;
+            }
+
+            return -1;
         }
 
         public TypeMapping this[int index]

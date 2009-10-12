@@ -20,6 +20,7 @@ namespace Sp.Data.Caml
             field.DisplayName = xmlNode.Attribute("DisplayName").Value;
             field.IsIndexed = xmlNode.AttributeBoolOrFalse("Indexed");
             field.List = xmlNode.AttributeValueOrDefault("List");
+            field.IsPrimaryKey = xmlNode.AttributeBoolOrFalse("PrimaryKey");
             return field;
         }
 

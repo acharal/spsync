@@ -81,6 +81,12 @@ namespace SpServerSync.Data
             Connection = new SpConnection(connectionString);
         }
 
+        public SpServerSyncProvider(string server, string site)
+        {
+            SyncAdapters = new SpSyncAdapterCollection();
+            Connection = new SpConnection(server, site, null, null, null);
+        }
+
         /// <summary>
         /// Releases all resources used by the SpServerSyncProvider. 
         /// </summary>
@@ -204,7 +210,24 @@ namespace SpServerSync.Data
             SelectingChangesEventArgs selectingArgs = new SelectingChangesEventArgs(groupMetadata, syncSession, syncContext, Connection, null);
             OnSelectingChanges(selectingArgs);
 
+            
             SyncSchema schema = new SyncSchema();
+            Collection<string> tables = new Collection<string>();
+            Collection<string> missingTables = new Collection<string>();
+            foreach (var tableMetadata in groupMetadata.TablesMetadata)
+                tables.Add(tableMetadata.TableName);
+
+            if (tables.Count > 0)
+                schema = GetSchemaFromDatabase(tables, out missingTables);
+
+            if (missingTables != null)
+            {
+                SchemaException e = new SchemaException("Missing tables");
+                e.SyncStage = SyncStage.DownloadingChanges;
+                e.ErrorNumber = SyncErrorNumber.MissingTableSchema;
+                throw e;
+            }
+
             // FIX: Get schema from somewhere (possibly the adapter or a temporary schema)
 
             EnumerateChanges(groupMetadata, syncSession, syncContext, schema);
@@ -219,6 +242,8 @@ namespace SpServerSync.Data
         {
             SyncStage syncStage = SyncStage.DownloadingChanges;
             SpSyncTableAnchorCollection newSyncAnchor = new SpSyncTableAnchorCollection();
+
+            int pages = 0;
 
             foreach (SyncTableMetadata tableMetadata in groupMetadata.TablesMetadata)
             {
@@ -262,6 +287,10 @@ namespace SpServerSync.Data
                     SpSyncAnchor newAnchor = adapter.SelectIncremental(tableAnchor, BatchSize, Connection, insertTable, updateTable, deleteTable);
 
                     newSyncAnchor[tableMetadata.TableName] = newAnchor;
+                    
+                    // calculate the total pages approximately
+                    // if there is more page to fetch the
+                    pages += newAnchor.PagingToken != null ? newAnchor.PageNumber + 1 : newAnchor.PageNumber;
 
                     foreach (DataRow row in insertTable.Rows)
                     {
@@ -309,6 +338,8 @@ namespace SpServerSync.Data
 
             syncContext.NewAnchor = new SyncAnchor();
             syncContext.NewAnchor.Anchor = SpSyncTableAnchorCollection.Serialize(newSyncAnchor);
+            syncContext.BatchCount = pages;
+
         }
 
         /// <summary>
@@ -321,15 +352,15 @@ namespace SpServerSync.Data
         {
             SyncSchema schema = null;
             Collection<string> missingTables = null;
-            Collection<string> missingTables2 = new Collection<string>();
+            Collection<string> missingTables2 = null;
             
             if (Schema != null)
             {
-                schema = GetSchemaFromSchemaDataset(tableNames, out missingTables);
+                schema = GetSchemaFromSchemaDataset(tableNames, out missingTables2);
 
                 if (missingTables != null)
                 {
-                    SyncSchema schema2 = GetSchemaFromDatabase(missingTables, out missingTables2);
+                    SyncSchema schema2 = GetSchemaFromDatabase(missingTables2, out missingTables);
                     schema.Merge(schema2);
                 }
             }
@@ -338,7 +369,7 @@ namespace SpServerSync.Data
                 schema = GetSchemaFromDatabase(tableNames, out missingTables);
             }
 
-            if (missingTables2 != null)
+            if (missingTables != null)
             {
                 SchemaException e = new SchemaException("Missing tables");
                 e.SyncStage = SyncStage.ReadingSchema;
@@ -480,6 +511,8 @@ namespace SpServerSync.Data
             schema.SchemaDataSet.Locale = CultureInfo.InvariantCulture;
             missingTables = new Collection<string>();
 
+            Connection.Open();
+
             foreach (string tableName in tableNames)
             {
                 SpSyncAdapter adapter = null;
@@ -494,11 +527,11 @@ namespace SpServerSync.Data
 
                     try
                     {
-                        dataTable = adapter.FillSchema(dataTable, null);
+                        dataTable = adapter.FillSchema(dataTable, Connection);
                         dataTable.TableName = tableName;    // rename of the table?
                         schema.SchemaDataSet.Tables.Add(dataTable);
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
                         missingTables.Add(tableName);
                     }
@@ -508,6 +541,8 @@ namespace SpServerSync.Data
                     missingTables.Add(tableName);
                 }
             }
+
+            Connection.Close();
 
             if (missingTables.Count == 0)
                 missingTables = null;

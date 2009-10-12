@@ -190,18 +190,32 @@ namespace SpServerSync.Data
         protected void MapFromFieldToColumn(DataColumn column, Field field)
         {
             int num = this.TypeMappings.IndexOfFieldType(field.FieldType);
+            TypeMapping typeMapping;
+ 
             if (num > -1)
             {
-                TypeMapping typeMapping = this.TypeMappings[num];
-                column.DataType = typeMapping.Type;
-                SetDataColumnExtendedProperty(column, "DataTypeName", typeMapping.SqlType);
-
-                if (typeMapping.SqlLength != null)
-                    SetDataColumnExtendedProperty(column, "ColumnLength", typeMapping.SqlLength);
-
+                typeMapping = this.TypeMappings[num];
+            }
+            else if (this.TypeMappings.DefaultMapping != null)
+            {
+                typeMapping = this.TypeMappings.DefaultMapping;
             }
             else
+            {
                 throw new NotImplementedException("there is no default type mapping");
+            }
+
+            column.ColumnName = field.Name;
+            column.Caption = field.DisplayName;
+            column.DataType = typeMapping.Type;
+
+            SetDataColumnExtendedProperty(column, "DataTypeName", typeMapping.SqlType);
+
+            if (typeMapping.SqlLength != null)
+               SetDataColumnExtendedProperty(column, "ColumnLength", typeMapping.SqlLength);
+
+            if (column.ColumnName == this.RowGuidColumn)
+                SetDataColumnExtendedProperty(column, "RowGuidCol", true);
         }
 
         #endregion
@@ -241,17 +255,34 @@ namespace SpServerSync.Data
                     primaryColumns.Add(column);
             }
 
-            foreach (DataColumn tableColumn in table.Columns)
+            bool primaryRemoved = false;
+
+            if (DataColumns.Count > 0)
             {
-                if (DataColumns.Contains(tableColumn.ColumnName))
-                    table.Columns.Remove(tableColumn);
+                List<string> columnsToRemove = new List<string>();
+                foreach (DataColumn tableColumn in table.Columns)
+                {
+                    if (!DataColumns.Contains(tableColumn.ColumnName))
+                    {
+                        columnsToRemove.Add(tableColumn.ColumnName);
+
+                        if (primaryColumns.Contains(tableColumn))
+                            primaryRemoved = true;
+                    }
+                }
+
+                foreach (string tableColumn2 in columnsToRemove)
+                    table.Columns.Remove(tableColumn2);              
             }
 
-            if (primaryColumns.Count > 0 && DataColumns.Count == 0)
+            if (primaryColumns.Count > 0 && !primaryRemoved)
             {
-                table.PrimaryKey = new DataColumn[primaryColumns.Count];
-                primaryColumns.CopyTo(table.PrimaryKey, primaryColumns.Count);
+                DataColumn[] primaryKey = new DataColumn[primaryColumns.Count];
+                primaryColumns.CopyTo(primaryKey, 0);
+                table.PrimaryKey = primaryKey;
             }
+
+            table.TableName = this.TableName;
         }
 
 
@@ -482,7 +513,7 @@ namespace SpServerSync.Data
             int index = value.IndexOf(";#");
             if (index > -1)
             {
-                value = value.Substring(0, index + 1);
+                value = value.Substring(0, index);
             }
 
             return Int32.Parse(value);
@@ -531,7 +562,7 @@ namespace SpServerSync.Data
                     if (col != null)
                     {
                         if (col.DataType == typeof(String))
-                            row[col] = cell.Key;
+                            row[col] = cell.Value;
                         else if (col.DataType == typeof(int))
                             row[col] = ParseIntOrLookupID(cell.Value); // lookup
                         else if (col.DataType == typeof(Guid))

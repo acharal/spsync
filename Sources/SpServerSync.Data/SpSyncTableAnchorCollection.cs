@@ -4,12 +4,12 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Xml.Serialization;
+using System.Collections.ObjectModel;
 
 namespace SpServerSync.Data
 {
-    public class SpSyncTableAnchorCollection : IEnumerable<SpSyncTableAnchor>
+    public class SpSyncTableAnchorCollection : Collection<SpSyncTableAnchor>
     {
-        public List<SpSyncTableAnchor> TableAnchors { set; get; }
 
         public SpSyncTableAnchorCollection()
         {
@@ -18,7 +18,7 @@ namespace SpServerSync.Data
 
         public bool Contains(string tableName)
         {
-            foreach (SpSyncTableAnchor tableAnchor in TableAnchors)
+            foreach (SpSyncTableAnchor tableAnchor in this)
                 if (tableAnchor.TableName == tableName)
                     return true;
             return false;
@@ -27,7 +27,7 @@ namespace SpServerSync.Data
         public SpSyncAnchor this[string tableName]
         { 
             get {
-                foreach (SpSyncTableAnchor tableAnchor in TableAnchors)
+                foreach (SpSyncTableAnchor tableAnchor in this)
                     if (tableAnchor.TableName == tableName)
                         return tableAnchor.Anchor;
 
@@ -36,7 +36,7 @@ namespace SpServerSync.Data
 
             set
             {
-                foreach (SpSyncTableAnchor tableAnchor in TableAnchors)
+                foreach (SpSyncTableAnchor tableAnchor in this)
                 {
                     if (tableAnchor.TableName == tableName)
                     {
@@ -48,27 +48,9 @@ namespace SpServerSync.Data
                 SpSyncTableAnchor newAnchor = new SpSyncTableAnchor();
                 newAnchor.TableName = tableName;
                 newAnchor.Anchor = value;
-                TableAnchors.Add(newAnchor);
+                this.Add(newAnchor);
             }
         }
-
-        #region IEnumerable<SpSyncTableAnchor> Members
-
-        public IEnumerator<SpSyncTableAnchor> GetEnumerator()
-        {
-            return TableAnchors.GetEnumerator();
-        }
-
-        #endregion
-
-        #region IEnumerable Members
-
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-        {
-            return TableAnchors.GetEnumerator();
-        }
-
-        #endregion
 
         public static SpSyncTableAnchorCollection Deserialize(byte[] buffer)
         {

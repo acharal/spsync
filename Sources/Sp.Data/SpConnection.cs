@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Data;
+using System.Data.Common;
 using System.Xml;
 using Sp.Data.Caml;
 using System.Collections.Generic;
+using System.Net;
 
 namespace Sp.Data
 {
@@ -10,30 +12,40 @@ namespace Sp.Data
     {
         private ConnectionState _state;
 
-        private string _connectionString;
-       
+        // private string _connectionString;
+
         private int _connectionTimeout = 1000;
 
         private string _siteName;
 
         private string _server;
 
+        private ICredentials _credentials = System.Net.CredentialCache.DefaultCredentials; 
+
         private bool isOpen = false;
 
         private Sp.Data.WS.Lists listService;
 
 
-        public SpConnection(string server, string site)
+        public SpConnection(string connString)
+        {
+            listService = new Sp.Data.WS.Lists();
+            //ConnectionString = connString;
+            ParseConnectionString(connString);
+
+        }
+
+        public SpConnection(string server, string site, string username, string password, string domain)
         {
             listService = new Sp.Data.WS.Lists();
             _server = server;
             _siteName = site;
-        }
 
-        public SpConnection(string connString)
-        {
-            listService = new Sp.Data.WS.Lists();
-            ConnectionString = connString;
+            if (username != null && password != null)
+            {
+                _credentials = new NetworkCredential(username, password, domain);
+            }
+            _credentials = new System.Net.NetworkCredential("nangelc1it", "p@n@th@s13", "VIANEX");
         }
 
         #region IDbConnection Members
@@ -66,14 +78,17 @@ namespace Sp.Data
         {
             get
             {
-                return _connectionString;
+                return BuildConnectionString();
             }
             set
             {
+                if (value == null)
+                    return;
+
                 if (isOpen)
                     Close();
 
-                _connectionString = value;
+                ParseConnectionString(value);
                 Open();
             }
         }
@@ -99,7 +114,8 @@ namespace Sp.Data
             _state = ConnectionState.Open;
             listService.Timeout = this.ConnectionTimeout;
             //listService.Url = _server + "/" + _siteName + "/" + "_vti_bin/Lists.asmx";
-            listService.Url = ConnectionString;
+            listService.Url = _server + "/" + _siteName + "/" + "_vti_bin" + "/" + "Lists.asmx";
+            listService.Credentials = _credentials;
             isOpen = true;
         }
 
@@ -109,6 +125,35 @@ namespace Sp.Data
         }
 
         #endregion
+
+        private void ParseConnectionString(string connString)
+        {
+            throw new NotImplementedException();
+            /*
+            if (String.IsNullOrEmpty(connString))
+                throw new ArgumentNullException("connString");
+
+            DbConnectionStringBuilder builder = new DbConnectionStringBuilder();
+
+            builder.ConnectionString = connString;
+
+            _server = builder["Data Source"] as string;
+
+            _siteName = builder["Initial Catalog"] as string;
+
+            string username = builder["User ID"] as string;
+
+            string password = builder["Password"] as string;
+
+            if (username != null && password != null)
+                _credentials = new NetworkCredential(username, password);
+            */
+        }
+
+        private string BuildConnectionString()
+        {
+            throw new NotImplementedException();
+        }
 
         #region IDisposable Members
 
@@ -141,8 +186,12 @@ namespace Sp.Data
                 viewFieldsNode.AppendChild(fieldRef);
             }
 
-            XmlDocument queryDoc = new XmlDocument();
-            queryDoc.LoadXml(query);
+            XmlDocument queryDoc = null;
+            if (!String.IsNullOrEmpty(query))
+            {
+                queryDoc = new XmlDocument();
+                queryDoc.LoadXml(query);
+            }
 
             XmlNode response = listService.GetListItemChangesSinceToken(
                 listName,

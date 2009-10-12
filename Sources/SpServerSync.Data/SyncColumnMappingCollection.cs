@@ -11,13 +11,31 @@ namespace SpServerSync.Data
 
         public int IndexOfServerColumn(string serverColumn)
         {
-            throw new NotImplementedException();
+            int index = 0;
+            foreach (ColumnMapping mapping in this)
+            {
+                if (mapping.ServerColumn == serverColumn)
+                    return index;
+                else
+                    index++;
+            }
+
+            return -1;
         }
 
         public int IndexOfClientColumn(string clientColumn)
         {
-            throw new NotImplementedException();
+            int index = 0;
+            foreach (ColumnMapping mapping in this)
+            {
+                if (mapping.ClientColumn == clientColumn)
+                    return index;
+                else
+                    index++;
+            }
+            return -1;
         }
+
 
         public ColumnMapping this[int index]
         {
