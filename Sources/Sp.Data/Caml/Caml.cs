@@ -140,6 +140,36 @@ namespace Sp.Data.Caml
             return changes;
         }
 
+        public static UpdateResults GetCamlUpdateResults(this XElement xmlNode)
+        {
+            UpdateResults results = new UpdateResults();
+            XNamespace defaultNs = xmlNode.GetDefaultNamespace();
+            var resultList = xmlNode.Elements("Result" + defaultNs).Select(n => n.GetCamlUpdateResult());
+            
+            foreach (UpdateResult r in resultList)
+                results.Add(r);
+            
+            return results;
+        }
+
+        public static UpdateResult GetCamlUpdateResult(this XElement xmlNode)
+        {
+            UpdateResult result = new UpdateResult();
+            XNamespace defaultns = xmlNode.GetDefaultNamespace();
+            XNamespace rowsetns = xmlNode.GetNamespaceOfPrefix("z");
+
+            string ResultID = xmlNode.Attribute("ID").Value;
+            string[] IdAndCommand = ResultID.Split(",".ToCharArray());
+            result.UpdateItemID = Int32.Parse(IdAndCommand[0]);
+            result.Command = IdAndCommand[1];
+            result.ErrorCode = xmlNode.Element("ErrorCode" + defaultns).Value;
+            XElement errorMessageElement = xmlNode.Elements("ErrorMessage" + defaultns).FirstOrDefault();
+            result.ErrorMessage = (errorMessageElement == null) ? null : errorMessageElement.Value;
+            XElement listItemElement = xmlNode.Elements("row" + rowsetns).FirstOrDefault();
+            result.ItemData = listItemElement == null ? null : listItemElement.GetCamlListItem();
+            return result;
+        }
+
         private static string AttributeValueOrDefault(this XElement xmlNode, string attribute)
         {
             if (xmlNode.Attribute(attribute) != null)
@@ -193,7 +223,6 @@ namespace Sp.Data.Caml
             }
 
             XmlElement fid = doc.CreateElement("Field");
-            fid.SetAttribute("Name", "ID");
             fid.SetAttribute("Name", "ID");
             fid.InnerXml = item.Command == "New" ? "New" : item.ListItemID.ToString();
             method.AppendChild(fid);

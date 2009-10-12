@@ -49,10 +49,10 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Web.Services" />
-    <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\Sp.Data\Caml\Caml.cs">
@@ -94,8 +94,20 @@
     <Compile Include="..\Sp.Data\Caml\UpdateBatch.cs">
       <Link>Caml\UpdateBatch.cs</Link>
     </Compile>
+    <Compile Include="..\Sp.Data\Caml\UpdateCommands.cs">
+      <Link>Caml\UpdateCommands.cs</Link>
+    </Compile>
     <Compile Include="..\Sp.Data\Caml\UpdateItem.cs">
       <Link>Caml\UpdateItem.cs</Link>
+    </Compile>
+    <Compile Include="..\Sp.Data\Caml\UpdateResult.cs">
+      <Link>Caml\UpdateResult.cs</Link>
+    </Compile>
+    <Compile Include="..\Sp.Data\Caml\UpdateResults.cs">
+      <Link>Caml\UpdateResults.cs</Link>
+    </Compile>
+    <Compile Include="..\Sp.Data\Caml\XElementExtensions.cs">
+      <Link>Caml\XElementExtensions.cs</Link>
     </Compile>
     <Compile Include="..\Sp.Data\Lists.cs">
       <Link>Lists.cs</Link>

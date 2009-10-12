@@ -55,9 +55,9 @@
     <Content Include="AuthoringTests.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SpServerSync.Data\SpServerSync.Data.csproj">
+    <ProjectReference Include="..\SpServerSync.Data\Sp.Sync.Data.Server.csproj">
       <Project>{2C6A7F49-6E7F-4FF2-B633-C067F31CB99F}</Project>
-      <Name>SpServerSync.Data</Name>
+      <Name>Sp.Sync.Data.Server</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

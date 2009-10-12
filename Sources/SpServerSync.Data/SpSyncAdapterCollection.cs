@@ -1,37 +1,46 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Collections.ObjectModel;
 
 namespace SpServerSync.Data
 {
     public class SpSyncAdapterCollection : Collection<SpSyncAdapter>
     {
-        public bool Contains(string listName)
+        public bool Contains(string tableName)
         {
             foreach (SpSyncAdapter adapter in this)
-                if (adapter.ListName == listName)
+                if (adapter.TableName == tableName)
                     return true;
 
             return false;
         }
 
-        public void Remove(string listName)
+        public void Remove(string tableName)
         {
-            if (this.Contains(listName))
-                base.Remove(this[listName]);
+            if (this.Contains(tableName))
+                base.Remove(this[tableName]);
         }
 
-        public SpSyncAdapter this[string listName]
+        public int IndexOf(string tableName)
+        {
+            int i = 0;
+            foreach (SpSyncAdapter adapter in this)
+                if (adapter.TableName == tableName)
+                    return i;
+                else
+                    i++;
+            return -1;
+        }
+
+        public SpSyncAdapter this[string tableName]
         {
             get {
 
-                if (listName == null)
-                    throw new ArgumentNullException("listName");
+                if (tableName == null)
+                    throw new ArgumentNullException("tableName");
 
                 foreach (SpSyncAdapter adapter in this)
-                    if (adapter.ListName == listName)
+                    if (adapter.TableName == tableName)
                         return adapter;
 
                 throw new ArgumentException("Invalid list name");

@@ -14,6 +14,11 @@ namespace SpServerSync.Data
             throw new NotImplementedException();
         }
 
+        public int IndexOfClientColumn(string clientColumn)
+        {
+            throw new NotImplementedException();
+        }
+
         public ColumnMapping this[int index]
         {
             get {

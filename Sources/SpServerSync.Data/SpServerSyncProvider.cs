@@ -4,6 +4,8 @@ using System.Data;
 using Microsoft.Synchronization.Data;
 using System.Globalization;
 using Microsoft.Synchronization;
+using Sp.Data;
+using System.Collections.Generic;
 
 namespace SpServerSync.Data
 {
@@ -61,16 +63,22 @@ namespace SpServerSync.Data
         public SyncSchema Schema { get; set; }
 
         /// <summary>
-        /// Gets the collection of the synchronization adapters
+        /// Gets the collection of the sharepoint synchronization adapters
         /// </summary>
         public SpSyncAdapterCollection SyncAdapters { get; private set; }
 
         /// <summary>
+        /// Gets the sharepoint connection
+        /// </summary>
+        public SpConnection Connection { get; private set;  }
+        
+        /// <summary>
         /// Initializes a new instance of the SpServerSyncProvider class.
         /// </summary>
-        public SpServerSyncProvider()
+        public SpServerSyncProvider(string connectionString)
         {
             SyncAdapters = new SpSyncAdapterCollection();
+            Connection = new SpConnection(connectionString);
         }
 
         /// <summary>
@@ -78,7 +86,7 @@ namespace SpServerSync.Data
         /// </summary>
         public override void Dispose()
         {
-
+            Connection.Dispose();
         }
 
         /// <summary>
@@ -96,27 +104,84 @@ namespace SpServerSync.Data
                 throw new ArgumentNullException("syncSession");
 
             SyncContext syncContext = new SyncContext();
+            groupMetadata = InitializeMetadata(groupMetadata, dataSet, syncContext);
 
             // connect to database
-            
+            Connection.Open();
 
             // create transaction
 
-            ApplyingChangesEventArgs applyingArgs = new ApplyingChangesEventArgs(groupMetadata, dataSet, syncSession, syncContext, null, null);
+            ApplyingChangesEventArgs applyingArgs = new ApplyingChangesEventArgs(groupMetadata, dataSet, syncSession, syncContext, Connection, null);
             OnApplyingChanges(applyingArgs);
 
-            // apply deletes
-            // apply inserts
-            // apply updates
-
+            ApplyChangesInternal(groupMetadata, dataSet, syncSession, syncContext);
             // commit transaction
 
-            ChangesAppliedEventArgs appliedArgs = new ChangesAppliedEventArgs(groupMetadata, syncSession, syncContext, null, null);
+            ChangesAppliedEventArgs appliedArgs = new ChangesAppliedEventArgs(groupMetadata, syncSession, syncContext, Connection, null);
             OnChangesApplied(appliedArgs);
 
             // disconnect from database
+            Connection.Close();
 
-            throw new NotImplementedException();
+            return syncContext;
+        }
+
+        private void ApplyChangesInternal(SyncGroupMetadata groupMetadata, DataSet dataSet, SyncSession syncSession, SyncContext syncContext)
+        {
+            SyncStage syncStage = SyncStage.UploadingChanges;
+
+            foreach (SyncTableMetadata tableMetadata in groupMetadata.TablesMetadata)
+            {
+                SpSyncAdapter adapter = null;
+
+                if (this.SyncAdapters.Contains(tableMetadata.TableName))
+                    adapter = this.SyncAdapters[tableMetadata.TableName];
+
+                if (adapter == null)
+                    throw new ArgumentException("Invalid sync table name: " + tableMetadata.TableName);
+
+                if (!dataSet.Tables.Contains(tableMetadata.TableName))
+                    throw new ArgumentException("Table " + tableMetadata.TableName + " not contained in dataSet");
+
+                SyncTableProgress tableProgress = syncContext.GroupProgress.FindTableProgress(tableMetadata.TableName);
+
+                DataTable dataTable = dataSet.Tables[tableMetadata.TableName];
+
+                try
+                {
+                    Collection<SyncConflict> conflicts;
+                    
+                    adapter.Update(dataTable, Connection, out conflicts);
+
+                    if (conflicts != null)
+                    {
+                        foreach (SyncConflict conflict in conflicts)
+                        {
+                            ApplyChangeFailedEventArgs failureArgs = new ApplyChangeFailedEventArgs(tableMetadata, conflict, null, syncSession, syncContext, Connection, null);
+                            OnApplyChangeFailed(failureArgs);
+
+                            if (failureArgs.Action == ApplyAction.Continue)
+                            {
+                                if (conflict != null)
+                                {
+                                    tableProgress.ChangesFailed++;
+                                    tableProgress.Conflicts.Add(conflict);
+                                }
+                            }
+                        }
+                    }
+                    tableProgress.ChangesApplied = dataTable.Rows.Count - tableProgress.ChangesFailed;
+                }
+                catch (Exception e)
+                {
+                    // handle errors?
+                    if (SyncTracer.IsErrorEnabled())
+                        SyncTracer.Error(e.ToString());
+                }
+
+                SyncProgressEventArgs args = new SyncProgressEventArgs(tableMetadata, tableProgress, groupMetadata, syncContext.GroupProgress, syncStage);
+                OnSyncProgress(args);
+            }
         }
         
         /// <summary>
@@ -133,18 +198,117 @@ namespace SpServerSync.Data
                 throw new ArgumentNullException("syncSession");
 
             SyncContext syncContext = new SyncContext();
+            DataSet dataSet = new DataSet();
+            groupMetadata = InitializeMetadata(groupMetadata, dataSet, syncContext);
 
-            SelectingChangesEventArgs selectingArgs = new SelectingChangesEventArgs(groupMetadata, syncSession, syncContext, null, null);
+            SelectingChangesEventArgs selectingArgs = new SelectingChangesEventArgs(groupMetadata, syncSession, syncContext, Connection, null);
             OnSelectingChanges(selectingArgs);
 
-            // enumerate changes insert
-            // enumerate changes updates
-            // enumerate changes deletes
+            SyncSchema schema = new SyncSchema();
+            // FIX: Get schema from somewhere (possibly the adapter or a temporary schema)
 
-            ChangesSelectedEventArgs selectedArgs = new ChangesSelectedEventArgs(groupMetadata, syncSession, syncContext, null, null);
+            EnumerateChanges(groupMetadata, syncSession, syncContext, schema);
+
+            ChangesSelectedEventArgs selectedArgs = new ChangesSelectedEventArgs(groupMetadata, syncSession, syncContext, Connection, null);
             OnChangesSelected(selectedArgs);
 
-            throw new NotImplementedException();
+            return syncContext;
+        }
+
+        private void EnumerateChanges(SyncGroupMetadata groupMetadata, SyncSession syncSession, SyncContext syncContext, SyncSchema schema)
+        {
+            SyncStage syncStage = SyncStage.DownloadingChanges;
+            SpSyncTableAnchorCollection newSyncAnchor = new SpSyncTableAnchorCollection();
+
+            foreach (SyncTableMetadata tableMetadata in groupMetadata.TablesMetadata)
+            {
+                SpSyncAdapter adapter = null;
+
+                if (this.SyncAdapters.Contains(tableMetadata.TableName))
+                    adapter = this.SyncAdapters[tableMetadata.TableName];
+
+                if (adapter == null)
+                    throw new ArgumentException("Invalid sync table name: " + tableMetadata.TableName);
+
+                
+                // SpSyncAnchor anchor 
+                if (!schema.SchemaDataSet.Tables.Contains(tableMetadata.TableName))
+                    throw new ArgumentException("Table " + tableMetadata.TableName + " is not in the schema");
+
+                DataTable dataTable = schema.SchemaDataSet.Tables[tableMetadata.TableName].Clone();
+
+                SyncTableProgress tableProgress = syncContext.GroupProgress.FindTableProgress(tableMetadata.TableName);
+
+                DataTable insertTable = dataTable.Clone();
+                DataTable updateTable = dataTable.Clone();
+                DataTable deleteTable = dataTable.Clone();
+
+                SpSyncAnchor tableAnchor = new SpSyncAnchor();
+
+                if (tableMetadata.LastReceivedAnchor.Anchor != null)
+                {
+                    SpSyncTableAnchorCollection anchors = SpSyncTableAnchorCollection.Deserialize(tableMetadata.LastReceivedAnchor.Anchor);
+                    if (anchors != null)
+                    {
+                        if (anchors.Contains(tableMetadata.TableName))
+                            tableAnchor = anchors[tableMetadata.TableName];
+                        else
+                            throw new ArgumentException("Anchor for table " + tableMetadata.TableName + " is not contained in the collection");
+                    }
+                }
+
+                try
+                {
+                    SpSyncAnchor newAnchor = adapter.SelectIncremental(tableAnchor, BatchSize, Connection, insertTable, updateTable, deleteTable);
+
+                    newSyncAnchor[tableMetadata.TableName] = newAnchor;
+
+                    foreach (DataRow row in insertTable.Rows)
+                    {
+                        row.SetAdded();
+                        dataTable.ImportRow(row);
+                        tableProgress.Inserts++;
+                    }
+
+                    foreach (DataRow row in deleteTable.Rows)
+                    {
+                        row.Delete();
+                        dataTable.ImportRow(row);
+                        tableProgress.Deletes++;
+                    }
+
+                    foreach (DataRow row in updateTable.Rows)
+                    {
+                        row.SetModified();
+                        dataTable.ImportRow(row);
+                        tableProgress.Updates++;
+                    }
+
+                    if (syncContext.DataSet.Tables.Contains(tableMetadata.TableName))
+                    { 
+                        DataTable contextTable = syncContext.DataSet.Tables[tableMetadata.TableName];
+                        foreach (DataRow row in dataTable.Rows)
+                            contextTable.ImportRow(row);
+                    }
+                    else
+                    {
+                        dataTable.TableName = tableMetadata.TableName;
+                        syncContext.DataSet.Tables.Add(dataTable);
+                    }
+                }
+                catch (Exception e)
+                {
+                
+                }
+
+                tableProgress.DataTable = dataTable;
+                SyncProgressEventArgs args = new SyncProgressEventArgs(tableMetadata,tableProgress,groupMetadata, syncContext.GroupProgress, syncStage);
+                OnSyncProgress(args);
+                tableProgress.DataTable = null;
+            }
+
+            syncContext.NewAnchor = new SyncAnchor();
+            syncContext.NewAnchor.Anchor = SpSyncTableAnchorCollection.Serialize(newSyncAnchor);
         }
 
         /// <summary>
@@ -183,6 +347,21 @@ namespace SpServerSync.Data
             }
 
             return schema;
+        }
+
+        /// <summary>
+        /// Returns a SyncServerInfo object that contains the table collection available from the server
+        /// </summary>
+        /// <param name="syncSession">A SyncSession object that contains synchronization session variables</param>
+        /// <returns>A SyncServerInfo object that contains the collection of the tables that can be synchronized</returns>
+        public override SyncServerInfo GetServerInfo(SyncSession syncSession)
+        {
+            Collection<SyncTableInfo> syncTableInfos = new Collection<SyncTableInfo>();
+            
+            foreach (SpSyncAdapter adapter in SyncAdapters)
+                syncTableInfos.Add(new SyncTableInfo(adapter.TableName, adapter.Description));
+            
+            return new SyncServerInfo(syncTableInfos);
         }
 
         #region Event Handlers
@@ -228,6 +407,12 @@ namespace SpServerSync.Data
 
         #endregion 
 
+        /// <summary>
+        /// Gets a SyncSchema object created from the existing DataSet defined by the user
+        /// </summary>
+        /// <param name="tableNames">the names of the tables to be included in the schema</param>
+        /// <param name="missingTables">the names of the missing tables not found in dataset</param>
+        /// <returns>the SyncSchema object</returns>
         protected virtual SyncSchema GetSchemaFromSchemaDataset(Collection<string> tableNames, out Collection<string> missingTables)
         {
             SyncSchema schema = new SyncSchema();
@@ -282,6 +467,12 @@ namespace SpServerSync.Data
 
         }
 
+        /// <summary>
+        /// Gets a SyncSchema object created by consulting the database, namely by filling the datatables from the SyncAdapters
+        /// </summary>
+        /// <param name="tableNames">the names of the tables to be included in the schema</param>
+        /// <param name="missingTables">the names of the missing tables not found in the set of the SyncAdapters</param>
+        /// <returns>the SyncSchema object</returns>
         protected virtual SyncSchema GetSchemaFromDatabase(Collection<string> tableNames, out Collection<string> missingTables)
         {
             SyncSchema schema = new SyncSchema();
@@ -323,5 +514,41 @@ namespace SpServerSync.Data
 
             return schema;
         }
+
+        private SyncGroupMetadata InitializeMetadata(SyncGroupMetadata groupMetadata, DataSet dataSet, SyncContext syncContext)
+        {
+            syncContext.DataSet = dataSet;
+            groupMetadata = GenerateOrderGroupMetadata(groupMetadata);
+            syncContext.GroupProgress = new SyncGroupProgress(groupMetadata, dataSet);
+            return groupMetadata;
+        }
+
+        private SyncGroupMetadata GenerateOrderGroupMetadata(SyncGroupMetadata groupMetadata)
+        {
+            if (groupMetadata.TablesMetadata.Count <= 1)
+                return groupMetadata;
+
+            SyncTableMetadata[] tableMetadatas = new SyncTableMetadata[groupMetadata.TablesMetadata.Count];
+            for (int i = 0; i < groupMetadata.TablesMetadata.Count; ++i)
+            { 
+                int index = SyncAdapters.IndexOf(groupMetadata.TablesMetadata[i].TableName);
+
+                if (index == -1)
+                    throw new ArgumentException("Invalid table name " + groupMetadata.TablesMetadata[i].TableName);
+                else
+                    tableMetadatas[index] = groupMetadata.TablesMetadata[i];
+            }
+            SyncGroupMetadata newGroupMetadata = new SyncGroupMetadata(groupMetadata);
+            newGroupMetadata.TablesMetadata.Clear();
+            
+            for (int i = 0; i < tableMetadatas.Length; i++)
+            {
+                if (tableMetadatas[i] != null)
+                    newGroupMetadata.TablesMetadata.Add(tableMetadatas[i]);
+            }
+
+            return newGroupMetadata;
+        }
+
     }
 }

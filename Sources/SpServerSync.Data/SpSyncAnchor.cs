@@ -75,6 +75,7 @@ namespace SpServerSync.Data
             PageNumber = num;
         }
 
+        /*
         /// <summary>
         /// Serializes an SpSyncAnchor object to a sequence of bytes
         /// </summary>
@@ -106,5 +107,6 @@ namespace SpServerSync.Data
                 return new SpSyncAnchor(null);
             }
         }
+        */
     }
 }

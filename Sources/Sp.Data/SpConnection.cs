@@ -1,6 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
+using System.Xml;
+using Sp.Data.Caml;
+using System.Collections.Generic;
 
 namespace Sp.Data
 {
@@ -20,10 +22,18 @@ namespace Sp.Data
 
         private Sp.Data.WS.Lists listService;
 
-        public SpConnection(string server)
+
+        public SpConnection(string server, string site)
         {
             listService = new Sp.Data.WS.Lists();
             _server = server;
+            _siteName = site;
+        }
+
+        public SpConnection(string connString)
+        {
+            listService = new Sp.Data.WS.Lists();
+            ConnectionString = connString;
         }
 
         #region IDbConnection Members
@@ -109,23 +119,73 @@ namespace Sp.Data
 
         #endregion
 
-        void GetListItemChangesSinceToken(string listName, string viewName, string query, int rowLimit, string changeToken)
+        #region Sharepoint specific commands
+
+        public ChangeBatch GetListItemChangesSinceToken(string listName, 
+            string viewName, 
+            string query, 
+            IEnumerable<string> viewFields,
+            int rowLimit, 
+            QueryOptions queryOptions, 
+            string changeToken)
         {
-            listService.GetListItemChangesSinceToken(
+            if (String.IsNullOrEmpty(listName))
+                throw new ArgumentNullException("listName");
+
+            XmlDocument viewDoc = new XmlDocument();
+            XmlElement viewFieldsNode = viewDoc.CreateElement("ViewFields");
+            foreach (string field in viewFields)
+            {
+                XmlElement fieldRef = viewDoc.CreateElement("FieldRef");
+                fieldRef.SetAttribute("Name", field);
+                viewFieldsNode.AppendChild(fieldRef);
+            }
+
+            XmlDocument queryDoc = new XmlDocument();
+            queryDoc.LoadXml(query);
+
+            XmlNode response = listService.GetListItemChangesSinceToken(
                 listName,
                 viewName,
-                null,
-                null,
+                queryDoc,
+                viewFieldsNode,
                 rowLimit.ToString(),
-                null,
-                changeToken, 
+                queryOptions.GetCamlQueryOptions(),
+                changeToken,
                 null);
+
+            return response.GetXElement().GetCamlChangeBatch();
         }
 
-        void UpdateListItems(string listName)
+        public UpdateResults UpdateListItems(string listName, UpdateBatch updateBatch)
         {
-            // listService.UpdateListItems();
-        
+            if (String.IsNullOrEmpty(listName))
+                throw new ArgumentNullException("listName");
+
+            if (updateBatch.Count == 0)
+                throw new ArgumentException("Batch contains no updates", "updateBatch");
+
+            XmlNode response = listService.UpdateListItems(listName, updateBatch.GetCamlUpdateBatch());
+            
+            return response.GetXElement().GetCamlUpdateResults();
         }
+
+        public ListDef GetListSchema(string listName)
+        {
+            if (String.IsNullOrEmpty(listName))
+                throw new ArgumentNullException("listName");
+
+            XmlNode listDef = listService.GetList(listName);
+
+            return listDef.GetXElement().GetCamlListDef();
+        }
+
+        public ListCollection GetLists()
+        {
+            XmlNode response = listService.GetListCollection();
+            return response.GetXElement().GetCamlListCollection();
+        }
+
+        #endregion
     }
 }

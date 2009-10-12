@@ -96,12 +96,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Sources\SpSync.Data.Server\SpSync.Data.Server.csproj">
-      <Project>{614AAE14-FC12-4CC1-B361-D18E57EBF450}</Project>
-      <Name>SpSync.Data.Server</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="test.sdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

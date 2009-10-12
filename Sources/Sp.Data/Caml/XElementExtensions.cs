@@ -5,7 +5,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace SpSync.Data.Server
+namespace Sp.Data.Caml
 {
     public static class XmlExtensions
     {

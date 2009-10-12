@@ -87,12 +87,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\Sources\SpSync.Data.Server.Mobile\SpSync.Data.Server.Mobile.csproj">
-      <Project>{43D73E73-54AD-4497-A93C-CEDFF86700F4}</Project>
-      <Name>SpSync.Data.Server.Mobile</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CompactFramework.CSharp.targets" />
   <ProjectExtensions>
     <VisualStudio>
