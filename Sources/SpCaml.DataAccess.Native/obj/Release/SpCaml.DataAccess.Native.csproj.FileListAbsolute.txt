@@ -1,7 +1,0 @@
-C:\Users\Administrator\Desktop\spsync\trunk\SpCaml.DataAccess.Native\bin\Release\SpCaml.DataAccess.Native.dll
-C:\Users\Administrator\Desktop\spsync\trunk\SpCaml.DataAccess.Native\bin\Release\SpCaml.DataAccess.Native.pdb
-C:\Users\Administrator\Desktop\spsync\trunk\SpCaml.DataAccess.Native\bin\Release\SpCaml.DataAccess.dll
-C:\Users\Administrator\Desktop\spsync\trunk\SpCaml.DataAccess.Native\bin\Release\SpCaml.DataAccess.pdb
-C:\Users\Administrator\Desktop\spsync\trunk\SpCaml.DataAccess.Native\obj\Release\ResolveAssemblyReference.cache
-C:\Users\Administrator\Desktop\spsync\trunk\SpCaml.DataAccess.Native\obj\Release\SpCaml.DataAccess.Native.dll
-C:\Users\Administrator\Desktop\spsync\trunk\SpCaml.DataAccess.Native\obj\Release\SpCaml.DataAccess.Native.pdb
