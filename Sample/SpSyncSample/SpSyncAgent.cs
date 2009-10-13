@@ -18,7 +18,7 @@ namespace SpSyncSample
             string sqlceConnString = "Data Source=local.sdf";
 
             LocalProvider  = new SqlCeClientSyncProvider(sqlceConnString);
-            RemoteProvider = new SpServerSyncProvider("http://testintranet/", "crm");
+            RemoteProvider = new SpServerSyncProvider("http://testintranet/", "crm_b");
             (RemoteProvider as SpServerSyncProvider).BatchSize = 100;
             InitializeTypeMappings();
             InitializeAdapters();
@@ -46,23 +46,26 @@ namespace SpSyncSample
         {
             SpSyncAdapter adapter1 = new SpSyncAdapter("Contacts");
             adapter1.TableName = "Contacts";
-            
+
             foreach (TypeMapping m in typeConnection)
                 adapter1.TypeMappings.Add(m);
             
             adapter1.TypeMappings.DefaultMapping = new TypeMapping("*", typeof(String), "nvarchar", 100);
             
-            adapter1.RowGuidColumn = "GUID";
+            // adapter1.RowGuidColumn = "GUID";
 
             adapter1.DataColumns.Add("ID");
             adapter1.DataColumns.Add("GUID");
             adapter1.DataColumns.Add("ContentType");
+            adapter1.DataColumns.Add("Title");
+            adapter1.DataColumns.Add("ParentAccount");
             adapter1.DataColumns.Add("FirstName");
             adapter1.DataColumns.Add("FullName");
             adapter1.DataColumns.Add("WorkPhone");
             adapter1.DataColumns.Add("CellPhone");
+            adapter1.DataColumns.Add("InterestedBy");
 
-            adapter1.FilterClause = "<Query><Where><Eq><FieldRef Name='WorkPhone'/><Value Type='Text'>2224350100</Value></Eq></Where></Query>";
+            // adapter1.FilterClause = "<Query><Where><Eq><FieldRef Name='InterestedBy' LookupId='TRUE' /><Value Type='Integer'><UserID/></Value></Eq></Where></Query>";
 
             (RemoteProvider as SpServerSync.Data.SpServerSyncProvider).SyncAdapters.Add(adapter1);
         }

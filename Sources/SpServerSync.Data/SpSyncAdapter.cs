@@ -48,11 +48,6 @@ namespace SpServerSync.Data
         public string Description { set; get; }
 
         /// <summary>
-        /// Gets or sets the current connection to the sharepoint server
-        /// </summary>
-        public SpConnection Connection { set; get; }
-
-        /// <summary>
         /// Gets or sets the option to include hidden field from the Sharepoint list
         /// </summary>
         public bool IncludeHiddenColumns { set; get; }
@@ -416,7 +411,7 @@ namespace SpServerSync.Data
                     ListItem item = new ListItem();
                     Exception e;
                     MapDataRowToListItem(row, item, out e);
-
+                    u.ChangedItemData = item;
                     if (e != null && SyncTracer.IsErrorEnabled())
                         SyncTracer.Error(e.ToString());
                 }
@@ -430,7 +425,7 @@ namespace SpServerSync.Data
 
             if (batch.Count != 0)
             {
-                UpdateResults results = Connection.UpdateListItems(this.ListName, batch);
+                UpdateResults results = connection.UpdateListItems(this.ListName, batch);
                 // FIX: errors must be handled appropriately
                 foreach (UpdateResult r in results)
                 {

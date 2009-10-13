@@ -145,7 +145,7 @@ namespace Sp.Data.Caml
         {
             UpdateResults results = new UpdateResults();
             XNamespace defaultNs = xmlNode.GetDefaultNamespace();
-            var resultList = xmlNode.Elements("Result" + defaultNs).Select(n => n.GetCamlUpdateResult());
+            var resultList = xmlNode.Elements(defaultNs + "Result").Select(n => n.GetCamlUpdateResult());
             
             foreach (UpdateResult r in resultList)
                 results.Add(r);
@@ -157,17 +157,17 @@ namespace Sp.Data.Caml
         {
             UpdateResult result = new UpdateResult();
             XNamespace defaultns = xmlNode.GetDefaultNamespace();
-            XNamespace rowsetns = xmlNode.GetNamespaceOfPrefix("z");
-
+            //XNamespace rowsetns = xmlNode.GetNamespaceOfPrefix("z");
+            XNamespace rowsetns = "#RowsetSchema";
             string ResultID = xmlNode.Attribute("ID").Value;
             string[] IdAndCommand = ResultID.Split(",".ToCharArray());
             result.UpdateItemID = Int32.Parse(IdAndCommand[0]);
             result.Command = IdAndCommand[1];
-            result.ErrorCode = xmlNode.Element("ErrorCode" + defaultns).Value;
-            XElement errorMessageElement = xmlNode.Elements("ErrorMessage" + defaultns).FirstOrDefault();
+            result.ErrorCode = xmlNode.Element(defaultns + "ErrorCode").Value;
+            XElement errorMessageElement = xmlNode.Elements(defaultns + "ErrorMessage").FirstOrDefault();
             result.ErrorMessage = (errorMessageElement == null) ? null : errorMessageElement.Value;
-            XElement listItemElement = xmlNode.Elements("row" + rowsetns).FirstOrDefault();
-            result.ItemData = listItemElement == null ? null : listItemElement.GetCamlListItem();
+            // XElement listItemElement = xmlNode.Elements("row").FirstOrDefault();
+            // result.ItemData = listItemElement == null ? null : listItemElement.GetCamlListItem();
             return result;
         }
 

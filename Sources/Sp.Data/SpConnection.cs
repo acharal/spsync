@@ -225,6 +225,7 @@ namespace Sp.Data
                 throw new ArgumentNullException("listName");
 
             XmlNode listDef = listService.GetList(listName);
+            // XmlNode node = listService.GetListAndView(listName, "My Contacts");
 
             return listDef.GetXElement().GetCamlListDef();
         }
