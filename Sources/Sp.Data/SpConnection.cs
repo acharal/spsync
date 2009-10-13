@@ -26,7 +26,6 @@ namespace Sp.Data
 
         private Sp.Data.WS.Lists listService;
 
-
         public SpConnection(string connString)
         {
             listService = new Sp.Data.WS.Lists();
@@ -193,6 +192,8 @@ namespace Sp.Data
                 queryDoc.LoadXml(query);
             }
 
+
+
             XmlNode response = listService.GetListItemChangesSinceToken(
                 listName,
                 viewName,
@@ -228,6 +229,19 @@ namespace Sp.Data
             // XmlNode node = listService.GetListAndView(listName, "My Contacts");
 
             return listDef.GetXElement().GetCamlListDef();
+        }
+
+        public ViewDef GetViewSchema(string listName, string viewName)
+        {
+            if (String.IsNullOrEmpty(listName))
+                throw new ArgumentNullException("listName");
+
+            if (String.IsNullOrEmpty(viewName))
+                throw new ArgumentNullException("viewName");
+
+            XmlNode viewDef = listService.GetListAndView(listName, viewName);
+
+            return viewDef.GetXElement().GetCamlViewDef();
         }
 
         public ListCollection GetLists()

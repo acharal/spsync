@@ -24,6 +24,18 @@ namespace Sp.Data.Caml
             return field;
         }
 
+        public static FieldRef GetCamlFieldRef(this XElement xmlNode)
+        {
+            FieldRef fieldRef = new FieldRef();
+            fieldRef.Name = xmlNode.Attribute("Name").Value;
+            fieldRef.DisplayName = xmlNode.Attribute("DisplayName") == null ? 
+                null : xmlNode.Attribute("DisplayName").Value;
+            fieldRef.IsHidden = xmlNode.AttributeBoolOrFalse("Hidden");
+            fieldRef.IsReadOnly = xmlNode.AttributeBoolOrFalse("ReadOnly");
+            fieldRef.IsRequired = xmlNode.AttributeBoolOrFalse("Required");
+            return fieldRef;
+        }
+
         public static List GetCamlList(this XElement xmlNode)
         {
             List list = new List();
@@ -49,6 +61,21 @@ namespace Sp.Data.Caml
             
             
             return listdef;
+        }
+
+        public static ViewDef GetCamlViewDef(this XElement xmlNode)
+        {
+            XNamespace defaultNs = xmlNode.GetDefaultNamespace();
+            ViewDef view = new ViewDef();
+
+            XElement viewNode = xmlNode.Element(defaultNs + "View");
+            view.Name = viewNode.Attribute("Name").Value;
+            view.DisplayName = viewNode.Attribute("DisplayName").Value;
+            view.Query = viewNode.Element(defaultNs + "Query").GetXmlNode();
+            view.ViewFields = viewNode.Element(defaultNs + "ViewFields").Elements("FieldRef").Select(n => n.GetCamlFieldRef()).ToList();
+            view.ListDef = xmlNode.Element(defaultNs + "List").GetCamlListDef();
+
+            return view;
         }
 
         public static ListCollection GetCamlListCollection(this XElement xmlNode)

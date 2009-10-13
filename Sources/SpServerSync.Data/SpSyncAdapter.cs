@@ -226,13 +226,28 @@ namespace SpServerSync.Data
             if (table == null)
                 throw new ArgumentNullException("table");
 
-            ListDef listDef = connection.GetListSchema(this.ListName);
+            ViewDef viewDef = null;
+            ListDef listDef = null;
+
+            if (this.ViewName != null)
+            {
+                viewDef = connection.GetViewSchema(this.ListName, this.ViewName);
+                listDef = viewDef.ListDef;
+            }
+            else
+            {
+                listDef = connection.GetListSchema(this.ListName);
+            }
 
             IList<DataColumn> primaryColumns = new List<DataColumn>();
 
             foreach (Field field in listDef.Fields)
             {
                 DataColumn column;
+
+                if (viewDef.ViewFields.Count > 0 && 
+                    !ContainsFieldRefWithName(viewDef.ViewFields, field.Name))
+                    continue;
 
                 if (!table.Columns.Contains(field.Name))
                 {
@@ -658,6 +673,15 @@ namespace SpServerSync.Data
             }
         }
         */
+
+        private bool ContainsFieldRefWithName(List<FieldRef> fieldRefs, string Name)
+        {
+            foreach (FieldRef f in fieldRefs)
+                if (f.Name == Name)
+                    return true;
+
+            return false;
+        }
         #endregion
     }
 }

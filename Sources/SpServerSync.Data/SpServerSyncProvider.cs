@@ -339,7 +339,6 @@ namespace SpServerSync.Data
             syncContext.NewAnchor = new SyncAnchor();
             syncContext.NewAnchor.Anchor = SpSyncTableAnchorCollection.Serialize(newSyncAnchor);
             syncContext.BatchCount = pages;
-
         }
 
         /// <summary>
@@ -388,10 +387,10 @@ namespace SpServerSync.Data
         public override SyncServerInfo GetServerInfo(SyncSession syncSession)
         {
             Collection<SyncTableInfo> syncTableInfos = new Collection<SyncTableInfo>();
-            
+
             foreach (SpSyncAdapter adapter in SyncAdapters)
                 syncTableInfos.Add(new SyncTableInfo(adapter.TableName, adapter.Description));
-            
+
             return new SyncServerInfo(syncTableInfos);
         }
 

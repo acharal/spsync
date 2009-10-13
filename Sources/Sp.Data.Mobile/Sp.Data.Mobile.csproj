@@ -72,6 +72,9 @@
     <Compile Include="..\Sp.Data\Caml\Field.cs">
       <Link>Caml\Field.cs</Link>
     </Compile>
+    <Compile Include="..\Sp.Data\Caml\FieldRef.cs">
+      <Link>Caml\FieldRef.cs</Link>
+    </Compile>
     <Compile Include="..\Sp.Data\Caml\List.cs">
       <Link>Caml\List.cs</Link>
     </Compile>
@@ -104,6 +107,9 @@
     </Compile>
     <Compile Include="..\Sp.Data\Caml\UpdateResults.cs">
       <Link>Caml\UpdateResults.cs</Link>
+    </Compile>
+    <Compile Include="..\Sp.Data\Caml\ViewDef.cs">
+      <Link>Caml\ViewDef.cs</Link>
     </Compile>
     <Compile Include="..\Sp.Data\Caml\XElementExtensions.cs">
       <Link>Caml\XElementExtensions.cs</Link>

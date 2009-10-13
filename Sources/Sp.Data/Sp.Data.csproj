@@ -49,6 +49,7 @@
     <Compile Include="Caml\ChangeItem.cs" />
     <Compile Include="Caml\ChangeLog.cs" />
     <Compile Include="Caml\Field.cs" />
+    <Compile Include="Caml\FieldRef.cs" />
     <Compile Include="Caml\List.cs" />
     <Compile Include="Caml\ListCollection.cs" />
     <Compile Include="Caml\ListDef.cs" />
@@ -60,6 +61,7 @@
     <Compile Include="Caml\UpdateItem.cs" />
     <Compile Include="Caml\UpdateResult.cs" />
     <Compile Include="Caml\UpdateResults.cs" />
+    <Compile Include="Caml\ViewDef.cs" />
     <Compile Include="Caml\XElementExtensions.cs" />
     <Compile Include="Lists.cs" />
     <Compile Include="SpCommand.cs" />

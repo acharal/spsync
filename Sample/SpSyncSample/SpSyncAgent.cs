@@ -46,6 +46,7 @@ namespace SpSyncSample
         {
             SpSyncAdapter adapter1 = new SpSyncAdapter("User Information List");
             adapter1.TableName = "User Information List";
+            adapter1.ViewName = "c2456ed9-f4a8-44cd-bc41-c889d99fd706";
 
             foreach (TypeMapping m in typeConnection)
                 adapter1.TypeMappings.Add(m);
@@ -53,8 +54,7 @@ namespace SpSyncSample
             adapter1.TypeMappings.DefaultMapping = new TypeMapping("*", typeof(String), "nvarchar", 100);
             
             // adapter1.RowGuidColumn = "GUID";
-
-            // adapter1.FilterClause = "<Query><Where><Eq><FieldRef Name='InterestedBy' LookupId='TRUE' /><Value Type='Integer'><UserID/></Value></Eq></Where></Query>";
+            adapter1.FilterClause = "<Query><Where><Eq><FieldRef Name='ContentType' /> <Value Type='Text'>Person</Value></Eq></Where></Query>";
 
             (RemoteProvider as SpServerSync.Data.SpServerSyncProvider).SyncAdapters.Add(adapter1);
         }
