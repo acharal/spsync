@@ -50,7 +50,7 @@ namespace SpSyncSample
 
             foreach (TypeMapping m in typeConnection)
                 adapter1.TypeMappings.Add(m);
-            
+
             adapter1.TypeMappings.DefaultMapping = new TypeMapping("*", typeof(String), "nvarchar", 100);
             
             // adapter1.RowGuidColumn = "GUID";
