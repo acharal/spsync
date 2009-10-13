@@ -26,7 +26,7 @@ namespace SpSync.Data.Server.Properties {
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.WebServiceUrl)]
-        [global::System.Configuration.DefaultSettingValueAttribute("http://testintranet/crm/_vti_bin/Lists.asmx")]
+        [global::System.Configuration.DefaultSettingValueAttribute("http://10.20.59.21/CRMBaby!/_vti_bin/Lists.asmx")]
         public string SpSync_Data_Server_SpWS_Lists {
             get {
                 return ((string)(this["SpSync_Data_Server_SpWS_Lists"]));

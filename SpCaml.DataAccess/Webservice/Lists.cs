@@ -32,7 +32,7 @@ namespace SpCaml.DataAccess.Implementation.WS {
         public Lists()
         {
             this.Timeout = 200000000;
-            this.Url = "http://testintranet/crm/_vti_bin/Lists.asmx";
+            this.Url = "http://10.20.59.21/CRMBaby!/_vti_bin/Lists.asmx";
         }
 
         /// <remarks/>
