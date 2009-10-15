@@ -5,7 +5,6 @@ using Sp.Data.Caml;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Collections.ObjectModel;
-using Microsoft.Synchronization;
 using Microsoft.Synchronization.Data;
 
 namespace SpServerSync.Data
@@ -508,18 +507,18 @@ namespace SpServerSync.Data
 
         private SyncConflict CreateSyncError(UpdateResult r, DataRow clientRow)
         {
-            SyncStage syncStage = SyncStage.UploadingChanges;
+            Microsoft.Synchronization.SyncStage syncStage = Microsoft.Synchronization.SyncStage.UploadingChanges;
 
             switch (r.Command)
             {
                 case "New":
-                    syncStage = SyncStage.ApplyingInserts;
+                    syncStage = Microsoft.Synchronization.SyncStage.ApplyingInserts;
                     break;
                 case "Update":
-                    syncStage = SyncStage.ApplyingUpdates;
+                    syncStage = Microsoft.Synchronization.SyncStage.ApplyingUpdates;
                     break;
                 case "Delete":
-                    syncStage = SyncStage.ApplyingDeletes;
+                    syncStage = Microsoft.Synchronization.SyncStage.ApplyingDeletes;
                     break;
             }
 
