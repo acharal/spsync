@@ -245,7 +245,8 @@ namespace SpServerSync.Data
             {
                 DataColumn column;
 
-                if (viewDef.ViewFields.Count > 0 && 
+                if (viewDef != null && 
+                    viewDef.ViewFields.Count > 0 && 
                     !ContainsFieldRefWithName(viewDef.ViewFields, field.Name))
                     continue;
 
@@ -711,7 +712,12 @@ namespace SpServerSync.Data
             foreach (DataColumn column in row.Table.Columns)
             {
                 string fieldName = GetServerColumnFromClientColumn(column.ColumnName);
-                string fieldValue = row[column].ToString();
+                string fieldValue;
+                if (column.DataType == typeof(DateTime) && row[column] != null)
+                    fieldValue = ((DateTime)row[column]).ToString("yyyy-MM-ddTHH:mm:ssZ");
+                else
+                    fieldValue = row[column].ToString();
+
                 item.Fields.Add(new KeyValuePair<string, string>(fieldName, fieldValue));
                 // FIX: Is there any columns that must not mapped to fields? 
                 // this maybe result to error from the sharepoint-side

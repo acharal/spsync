@@ -17,7 +17,7 @@ namespace Sp.Data.Caml
         
         public static readonly string VersionConflict = "0x81020015";
 
-        public static readonly string ItemDeleted = "missingcode";
+        public static readonly string ItemDeleted = "0x81020016";
 
         public bool IsSuccess()
         {

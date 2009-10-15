@@ -191,10 +191,10 @@ namespace Sp.Data.Caml
             result.UpdateItemID = Int32.Parse(IdAndCommand[0]);
             result.Command = IdAndCommand[1];
             result.ErrorCode = xmlNode.Element(defaultns + "ErrorCode").Value;
-            XElement errorMessageElement = xmlNode.Elements(defaultns + "ErrorMessage").FirstOrDefault();
+            XElement errorMessageElement = xmlNode.Elements(defaultns + "ErrorText").FirstOrDefault();
             result.ErrorMessage = (errorMessageElement == null) ? null : errorMessageElement.Value;
-            // XElement listItemElement = xmlNode.Elements("row").FirstOrDefault();
-            // result.ItemData = listItemElement == null ? null : listItemElement.GetCamlListItem();
+            XElement listItemElement = xmlNode.Elements(rowsetns + "row").FirstOrDefault();
+            result.ItemData = listItemElement == null ? null : listItemElement.GetCamlListItem();
             return result;
         }
 

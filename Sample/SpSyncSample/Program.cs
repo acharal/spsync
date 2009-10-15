@@ -7,7 +7,7 @@ namespace SpSyncSample
         static void Main(string[] args)
         {
             SpSyncAgent agent = new SpSyncAgent();
-            agent.Configuration.SyncTables.Add("User Information List", Microsoft.Synchronization.Data.SyncDirection.DownloadOnly);
+            agent.Configuration.SyncTables.Add("Activities", Microsoft.Synchronization.Data.SyncDirection.Bidirectional);
             agent.SessionProgress += agent_SessionProgress;
             agent.Synchronize();
         }
