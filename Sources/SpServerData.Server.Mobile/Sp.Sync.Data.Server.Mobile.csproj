@@ -7,7 +7,7 @@
     <ProjectGuid>{1BDC761C-3D96-4785-BD31-D99A6CA385A4}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SpServerData.Server.Mobile</RootNamespace>
+    <RootNamespace>SpServerData.Server</RootNamespace>
     <AssemblyName>SpServerData.Server.Mobile</AssemblyName>
     <ProjectTypeGuids>{4D628B5B-2FBC-4AA6-8C16-197242AEB884};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <PlatformFamilyName>PocketPC</PlatformFamilyName>
@@ -57,6 +57,9 @@
     <Compile Include="..\SpServerSync.Data\ColumnMapping.cs">
       <Link>ColumnMapping.cs</Link>
     </Compile>
+    <Compile Include="..\SpServerSync.Data\Messages.Designer.cs">
+      <Link>Messages.Designer.cs</Link>
+    </Compile>
     <Compile Include="..\SpServerSync.Data\SpServerSyncProvider.cs">
       <Link>SpServerSyncProvider.cs</Link>
     </Compile>
@@ -94,6 +97,11 @@
       <Project>{9BC3ABF6-5692-455A-9E13-37F5226B0724}</Project>
       <Name>Sp.Data.Mobile</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\SpServerSync.Data\Messages.resx">
+      <Link>Messages.resx</Link>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CompactFramework.CSharp.targets" />
   <ProjectExtensions>

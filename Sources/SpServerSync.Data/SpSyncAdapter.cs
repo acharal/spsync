@@ -5,6 +5,7 @@ using Sp.Data.Caml;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Collections.ObjectModel;
+using Microsoft.Synchronization;
 using Microsoft.Synchronization.Data;
 
 namespace SpServerSync.Data
@@ -371,6 +372,51 @@ namespace SpServerSync.Data
             return CalculateNextAnchor(anchor, changes);
         }
 
+        public SpSyncAnchor SelectAll(SpSyncAnchor anchor, int rowLimit, DataTable dataTable, SpConnection connection)
+        {
+
+            if (anchor == null)
+                throw new ArgumentNullException("anchor");
+
+            if (connection == null)
+                throw new ArgumentNullException("connection");
+
+            if (dataTable == null)
+                throw new ArgumentNullException("dataTable");
+
+            QueryOptions queryOptions = new QueryOptions()
+            {
+                PagingToken = anchor.PagingToken,
+                DateInUtc = false
+            };
+
+            ListItemCollection listItems = connection.GetListItems(
+                this.ListName,
+                this.ViewName,
+                this.FilterClause,
+                DataColumns,
+                rowLimit,
+                queryOptions);
+
+            if (dataTable != null)
+            {
+                foreach (ListItem item in listItems)
+                {
+                    DataRow row = dataTable.NewRow();
+                    Exception e;
+                    MapListItemToDataRow(item, row, out e);
+                    if (e != null)
+                    {
+                        if (SyncTracer.IsErrorEnabled())
+                            SyncTracer.Error(e.ToString());
+                    }
+                    dataTable.Rows.Add(row);
+                }
+            }
+
+            return CalculateNextAnchor(anchor, listItems.NextPage);
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -462,22 +508,53 @@ namespace SpServerSync.Data
 
         private SyncConflict CreateSyncError(UpdateResult r, DataRow clientRow)
         {
-            Microsoft.Synchronization.SyncStage syncStage = Microsoft.Synchronization.SyncStage.UploadingChanges;
+            SyncStage syncStage = SyncStage.UploadingChanges;
 
             switch (r.Command)
             {
                 case "New":
-                    syncStage = Microsoft.Synchronization.SyncStage.ApplyingInserts;
+                    syncStage = SyncStage.ApplyingInserts;
                     break;
                 case "Update":
-                    syncStage = Microsoft.Synchronization.SyncStage.ApplyingUpdates;
+                    syncStage = SyncStage.ApplyingUpdates;
                     break;
                 case "Delete":
-                    syncStage = Microsoft.Synchronization.SyncStage.ApplyingDeletes;
+                    syncStage = SyncStage.ApplyingDeletes;
                     break;
             }
 
-            SyncConflict conflict = new SyncConflict(ConflictType.ErrorsOccurred, syncStage);
+            SyncConflict conflict;
+
+            if (r.ErrorCode == UpdateResult.VersionConflict)
+            {
+                if (r.Command == "Update")
+                    conflict = new SyncConflict(ConflictType.ClientUpdateServerUpdate, syncStage);
+                else if (r.Command == "Delete")
+                    conflict = new SyncConflict(ConflictType.ClientDeleteServerUpdate, syncStage);
+                else
+                    conflict = new SyncConflict(ConflictType.Unknown, syncStage);
+
+                if (r.ItemData != null)
+                { 
+                    Exception e;
+                    DataRow serverRow = clientRow.Table.NewRow();
+                    MapListItemToDataRow(r.ItemData, serverRow, out e);
+                    if (e == null)
+                    {
+                        conflict.ServerChange = serverRow.Table.Clone();
+                        conflict.ServerChange.TableName = this.TableName;
+                        conflict.ServerChange.Rows.Add(serverRow);
+                    }
+                }
+            }
+            else if (r.ErrorCode == UpdateResult.ItemDeleted)
+            {
+                conflict = new SyncConflict(ConflictType.ClientUpdateServerDelete, syncStage);
+            }
+            else
+            {
+                conflict = new SyncConflict(ConflictType.ErrorsOccurred, syncStage);
+            }
 
             if (conflict.ClientChange == null)
             {
@@ -505,6 +582,26 @@ namespace SpServerSync.Data
             if (changes.HasMoreData())
             {
                 nextAnchor = new SpSyncAnchor(currentAnchor.NextChangesToken, changes.NextPage, currentAnchor.PageNumber + 1);
+                nextAnchor.NextChangesAnchor = nextChanges;
+            }
+
+            return nextAnchor;
+        }
+
+        /// <summary>
+        /// Calculates the next SpSyncAnchor from the current SpSyncAnchor object and the change batch just returned from the server
+        /// </summary>
+        /// <param name="currentAnchor">the current SpSyncAnchor object</param>
+        /// <param name="nextPageToken">the next page token given from sharepoint</param>
+        /// <returns>the new SpSyncAnchor for the next incremental select</returns>
+        protected SpSyncAnchor CalculateNextAnchor(SpSyncAnchor currentAnchor, string nextPageToken)
+        {
+            SpSyncAnchor nextChanges = null;
+            SpSyncAnchor nextAnchor = nextChanges;
+
+            if (nextPageToken != null)
+            {
+                nextAnchor = new SpSyncAnchor(currentAnchor.NextChangesToken, nextPageToken, currentAnchor.PageNumber + 1);
                 nextAnchor.NextChangesAnchor = nextChanges;
             }
 

@@ -7,6 +7,7 @@ using Microsoft.Synchronization;
 using Sp.Data;
 using System.Collections.Generic;
 
+
 namespace SpServerSync.Data
 {
     /// <summary>
@@ -144,10 +145,14 @@ namespace SpServerSync.Data
                     adapter = this.SyncAdapters[tableMetadata.TableName];
 
                 if (adapter == null)
-                    throw new ArgumentException("Invalid sync table name: " + tableMetadata.TableName);
+                    throw new ArgumentException(String.Format(CultureInfo.CurrentCulture,
+                        Messages.InvalidTableName, tableMetadata.TableName));
 
+
+                // SpSyncAnchor anchor 
                 if (!dataSet.Tables.Contains(tableMetadata.TableName))
-                    throw new ArgumentException("Table " + tableMetadata.TableName + " not contained in dataSet");
+                    throw new ArgumentException(String.Format(CultureInfo.CurrentCulture,
+                        Messages.TableNotInSchema, tableMetadata.TableName));
 
                 SyncTableProgress tableProgress = syncContext.GroupProgress.FindTableProgress(tableMetadata.TableName);
 
@@ -222,8 +227,11 @@ namespace SpServerSync.Data
 
             if (missingTables != null)
             {
-                SchemaException e = new SchemaException("Missing tables");
-                e.SyncStage = SyncStage.DownloadingChanges;
+                string[] tableArray = new string[missingTables.Count];
+                missingTables.CopyTo(tableArray, 0);
+                SchemaException e = new SchemaException(String.Format(CultureInfo.CurrentCulture,
+                    Messages.MissingTables, String.Join(", ", tableArray)));
+                e.SyncStage = SyncStage.ReadingSchema;
                 e.ErrorNumber = SyncErrorNumber.MissingTableSchema;
                 throw e;
             }
@@ -253,12 +261,14 @@ namespace SpServerSync.Data
                     adapter = this.SyncAdapters[tableMetadata.TableName];
 
                 if (adapter == null)
-                    throw new ArgumentException("Invalid sync table name: " + tableMetadata.TableName);
+                    throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, 
+                        Messages.InvalidTableName, tableMetadata.TableName));
 
                 
                 // SpSyncAnchor anchor 
                 if (!schema.SchemaDataSet.Tables.Contains(tableMetadata.TableName))
-                    throw new ArgumentException("Table " + tableMetadata.TableName + " is not in the schema");
+                    throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, 
+                        Messages.TableNotInSchema, tableMetadata.TableName));
 
                 DataTable dataTable = schema.SchemaDataSet.Tables[tableMetadata.TableName].Clone();
 
@@ -278,7 +288,8 @@ namespace SpServerSync.Data
                         if (anchors.Contains(tableMetadata.TableName))
                             tableAnchor = anchors[tableMetadata.TableName];
                         else
-                            throw new ArgumentException("Anchor for table " + tableMetadata.TableName + " is not contained in the collection");
+                            throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, 
+                                Messages.AnchorNotValidForTable, tableMetadata.TableName));
                     }
                 }
 
@@ -370,7 +381,10 @@ namespace SpServerSync.Data
 
             if (missingTables != null)
             {
-                SchemaException e = new SchemaException("Missing tables");
+                string[] tableArray = new string[missingTables.Count];
+                missingTables.CopyTo(tableArray, 0);
+                SchemaException e = new SchemaException(String.Format(CultureInfo.CurrentCulture, 
+                    Messages.MissingTables, String.Join(", ", tableArray)));
                 e.SyncStage = SyncStage.ReadingSchema;
                 e.ErrorNumber = SyncErrorNumber.MissingTableSchema;
                 throw e;
@@ -568,7 +582,8 @@ namespace SpServerSync.Data
                 int index = SyncAdapters.IndexOf(groupMetadata.TablesMetadata[i].TableName);
 
                 if (index == -1)
-                    throw new ArgumentException("Invalid table name " + groupMetadata.TablesMetadata[i].TableName);
+                    throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, 
+                        Messages.InvalidTableName, groupMetadata.TablesMetadata[i].TableName));
                 else
                     tableMetadatas[index] = groupMetadata.TablesMetadata[i];
             }

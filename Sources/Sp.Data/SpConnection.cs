@@ -207,6 +207,46 @@ namespace Sp.Data
             return response.GetXElement().GetCamlChangeBatch();
         }
 
+        public ListItemCollection GetListItems(string listName,
+            string viewName,
+            string query,
+            IEnumerable<string> viewFields,
+            int rowLimit,
+            QueryOptions queryOptions)
+        {
+
+            if (String.IsNullOrEmpty(listName))
+                throw new ArgumentNullException("listName");
+
+
+            XmlDocument viewDoc = new XmlDocument();
+            XmlElement viewFieldsNode = viewDoc.CreateElement("ViewFields");
+            foreach (string field in viewFields)
+            {
+                XmlElement fieldRef = viewDoc.CreateElement("FieldRef");
+                fieldRef.SetAttribute("Name", field);
+                viewFieldsNode.AppendChild(fieldRef);
+            }
+
+            XmlDocument queryDoc = null;
+            if (!String.IsNullOrEmpty(query))
+            {
+                queryDoc = new XmlDocument();
+                queryDoc.LoadXml(query);
+            }
+
+            XmlNode response = listService.GetListItems(
+                listName,
+                viewName,
+                queryDoc,
+                viewFieldsNode,
+                rowLimit.ToString(),
+                queryOptions.GetCamlQueryOptions(),
+                null);
+
+            return response.GetXElement().GetCamlListItemCollection();
+        }
+
         public UpdateResults UpdateListItems(string listName, UpdateBatch updateBatch)
         {
             if (String.IsNullOrEmpty(listName))
