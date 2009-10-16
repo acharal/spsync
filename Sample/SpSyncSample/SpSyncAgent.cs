@@ -44,8 +44,8 @@ namespace SpSyncSample
 
         protected virtual void InitializeAdapters()
         {
-            SpSyncAdapter adapter1 = new SpSyncAdapter("Activities");
-            adapter1.TableName = "Activities";
+            SpSyncAdapter adapter1 = new SpSyncAdapter("Contacts");
+            adapter1.TableName = "Contacts";
 
             foreach (TypeMapping m in typeConnection)
                 adapter1.TypeMappings.Add(m);
@@ -56,9 +56,8 @@ namespace SpSyncSample
             adapter1.DataColumns.Add("GUID");
             adapter1.DataColumns.Add("ContentType");
             adapter1.DataColumns.Add("Title");
-            adapter1.DataColumns.Add("EventDate");
-            adapter1.DataColumns.Add("Location");
             adapter1.DataColumns.Add("owshiddenversion");
+            adapter1.DataColumns.Add("FullName");
 
 
             // adapter1.RowGuidColumn = "GUID";

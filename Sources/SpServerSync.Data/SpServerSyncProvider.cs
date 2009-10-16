@@ -293,12 +293,12 @@ namespace SpServerSync.Data
                     }
                 }
 
+                SpSyncAnchor newAnchor = null;
+                
                 try
                 {
-                    SpSyncAnchor newAnchor = adapter.SelectIncremental(tableAnchor, BatchSize, Connection, insertTable, updateTable, deleteTable);
+                    newAnchor = adapter.SelectIncremental(tableAnchor, BatchSize, Connection, insertTable, updateTable, deleteTable);
 
-                    newSyncAnchor[tableMetadata.TableName] = newAnchor;
-                    
                     // calculate the total pages approximately
                     // if there is more page to fetch the
                     pages += newAnchor.PagingToken != null ? newAnchor.PageNumber + 1 : newAnchor.PageNumber;
@@ -325,7 +325,7 @@ namespace SpServerSync.Data
                     }
 
                     if (syncContext.DataSet.Tables.Contains(tableMetadata.TableName))
-                    { 
+                    {
                         DataTable contextTable = syncContext.DataSet.Tables[tableMetadata.TableName];
                         foreach (DataRow row in dataTable.Rows)
                             contextTable.ImportRow(row);
@@ -338,7 +338,12 @@ namespace SpServerSync.Data
                 }
                 catch (Exception e)
                 {
-                
+                    var e2 = new Microsoft.Synchronization.SyncException("", e);
+                    throw e2;
+                }
+                finally 
+                {
+                    newSyncAnchor[tableMetadata.TableName] = newAnchor;
                 }
 
                 tableProgress.DataTable = dataTable;
