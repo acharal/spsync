@@ -14,7 +14,7 @@ namespace Sp.Data
 
         // private string _connectionString;
 
-        private int _connectionTimeout = 1000;
+        private int _connectionTimeout = 100000000;
 
         private string _siteName;
 

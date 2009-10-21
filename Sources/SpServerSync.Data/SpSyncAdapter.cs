@@ -459,8 +459,9 @@ namespace SpServerSync.Data
                         u.Command = UpdateCommands.Update;
                         break;
                 }
-                
-                //row.RejectChanges();
+
+                if (u.Command == UpdateCommands.Delete)
+                    row.RejectChanges();
                 
                 if (u.Command != UpdateCommands.Insert)
                 {
@@ -480,8 +481,8 @@ namespace SpServerSync.Data
                 batch.Add(u);
                 IdMapping[u.ID] = row;
 
-                // if (u.Command == UpdateCommands.Delete)
-                //    row.Delete();
+                if (u.Command == UpdateCommands.Delete)
+                    row.Delete();
             }
 
             if (batch.Count != 0)
