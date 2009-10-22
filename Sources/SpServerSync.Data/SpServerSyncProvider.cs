@@ -82,10 +82,10 @@ namespace SpServerSync.Data
             Connection = new SpConnection(connectionString);
         }
 
-        public SpServerSyncProvider(string server, string site)
+        public SpServerSyncProvider(string server, string username, string password, string domain)
         {
             SyncAdapters = new SpSyncAdapterCollection();
-            Connection = new SpConnection(server, site, null, null, null);
+            Connection = new SpConnection(server, username, password, domain);
         }
 
         /// <summary>

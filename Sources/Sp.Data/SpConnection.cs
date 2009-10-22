@@ -16,8 +16,6 @@ namespace Sp.Data
 
         private int _connectionTimeout = 100000000;
 
-        private string _siteName;
-
         private string _server;
 
         private ICredentials _credentials = System.Net.CredentialCache.DefaultCredentials; 
@@ -25,6 +23,19 @@ namespace Sp.Data
         private bool isOpen = false;
 
         private Sp.Data.WS.Lists listService;
+
+        public ICredentials Credentials
+        {    
+            get 
+            { 
+                return _credentials; 
+            }
+            
+            set 
+            { 
+                _credentials = value; 
+            }
+        }
 
         public SpConnection(string connString)
         {
@@ -34,17 +45,15 @@ namespace Sp.Data
 
         }
 
-        public SpConnection(string server, string site, string username, string password, string domain)
+        public SpConnection(string server, string username, string password, string domain)
         {
             listService = new Sp.Data.WS.Lists();
             _server = server;
-            _siteName = site;
 
             if (username != null && password != null)
             {
                 _credentials = new NetworkCredential(username, password, domain);
             }
-            _credentials = new System.Net.NetworkCredential("nangelc1it", "p@n@th@s13", "VIANEX");
         }
 
         #region IDbConnection Members
@@ -61,8 +70,9 @@ namespace Sp.Data
 
         public void ChangeDatabase(string databaseName)
         {
-            _siteName = databaseName;
-            ConnectionString = _server + "/" + _siteName + "/" + "_vti_bin/Lists.asmx";
+            //_siteName = databaseName;
+            //ConnectionString = _server + "/" + _siteName + "/" + "_vti_bin/Lists.asmx";
+            _server = databaseName;
         }
 
         public void Close()
@@ -105,7 +115,7 @@ namespace Sp.Data
 
         public string Database
         {
-            get { return _siteName; }
+            get { return _server; }
         }
 
         public void Open()
@@ -113,7 +123,7 @@ namespace Sp.Data
             _state = ConnectionState.Open;
             listService.Timeout = this.ConnectionTimeout;
             //listService.Url = _server + "/" + _siteName + "/" + "_vti_bin/Lists.asmx";
-            listService.Url = _server + "/" + _siteName + "/" + "_vti_bin" + "/" + "Lists.asmx";
+            listService.Url = _server + "/" + "_vti_bin" + "/" + "Lists.asmx";
             listService.Credentials = _credentials;
             isOpen = true;
         }
@@ -127,7 +137,9 @@ namespace Sp.Data
 
         private void ParseConnectionString(string connString)
         {
-            throw new NotImplementedException();
+
+            _server = connString;
+
             /*
             if (String.IsNullOrEmpty(connString))
                 throw new ArgumentNullException("connString");
