@@ -259,8 +259,6 @@ namespace Sp.Sync.Data.Server
 
             SpSyncGroupAnchor newSyncAnchor = new SpSyncGroupAnchor();
 
-            int pages = 0;
-
             bool hasMoreData = false;
 
             foreach (SyncTableMetadata tableMetadata in groupMetadata.TablesMetadata)
@@ -361,11 +359,15 @@ namespace Sp.Sync.Data.Server
 
             syncContext.NewAnchor = new SyncAnchor();
 
-            if (hasMoreData)
-                newSyncAnchor.BatchCount++;
-
             syncContext.NewAnchor.Anchor = SpSyncGroupAnchor.Serialize(newSyncAnchor);
-            syncContext.BatchCount = newSyncAnchor.BatchCount;
+
+            int batchCount = groupMetadata.BatchCount == 0 ? 1 : groupMetadata.BatchCount;
+
+            if (hasMoreData)
+                syncContext.BatchCount = batchCount + 1;
+            else
+                syncContext.BatchCount = batchCount;
+           
         }
 
         /// <summary>

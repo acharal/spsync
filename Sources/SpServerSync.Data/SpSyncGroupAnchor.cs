@@ -12,7 +12,7 @@ namespace Sp.Sync.Data
         {
             using (MemoryStream m = new MemoryStream(buffer))
             {
-                var ser = new XmlSerializer(typeof(SpSyncTableAnchorCollection));
+                var ser = new XmlSerializer(typeof(SpSyncGroupAnchor));
                 object o = ser.Deserialize(m);
                 return o as SpSyncGroupAnchor;
             }

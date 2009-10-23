@@ -597,7 +597,7 @@ namespace Sp.Sync.Data
         /// <returns>the new SpSyncAnchor for the next incremental select</returns>
         protected SpSyncAnchor CalculateNextAnchor(SpSyncAnchor currentAnchor, string nextPageToken)
         {
-            SpSyncAnchor nextChanges = null;
+            SpSyncAnchor nextChanges = SpSyncAnchor.Empty;
             SpSyncAnchor nextAnchor = nextChanges;
 
             if (nextPageToken != null)
