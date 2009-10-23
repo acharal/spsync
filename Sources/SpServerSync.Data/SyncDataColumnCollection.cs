@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SpServerSync.Data
+namespace Sp.Sync.Data
 {
     public class SyncDataColumnCollection : IEnumerable<string>
     {

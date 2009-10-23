@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.21022</ProductVersion>
+    <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{2C6A7F49-6E7F-4FF2-B633-C067F31CB99F}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -52,6 +52,7 @@
     <Compile Include="SpSyncAdapter.cs" />
     <Compile Include="SpSyncAdapterCollection.cs" />
     <Compile Include="SpSyncAnchor.cs" />
+    <Compile Include="SpSyncGroupAnchor.cs" />
     <Compile Include="SpSyncTableAnchorCollection.cs" />
     <Compile Include="SyncColumnMappingCollection.cs" />
     <Compile Include="SyncDataColumnCollection.cs" />

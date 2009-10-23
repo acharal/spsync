@@ -1,14 +1,13 @@
 ﻿using System;
-using System.Collections.ObjectModel;
 using System.Data;
-using Microsoft.Synchronization.Data;
 using System.Globalization;
-using Microsoft.Synchronization;
-using Sp.Data;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using Microsoft.Synchronization;
+using Microsoft.Synchronization.Data;
+using Sp.Data;
 
-
-namespace SpServerSync.Data
+namespace Sp.Sync.Data.Server
 {
     /// <summary>
     /// Abstracts a sharepoint server synchronization provider that
@@ -214,11 +213,11 @@ namespace SpServerSync.Data
 
             SelectingChangesEventArgs selectingArgs = new SelectingChangesEventArgs(groupMetadata, syncSession, syncContext, Connection, null);
             OnSelectingChanges(selectingArgs);
-
             
             SyncSchema schema = new SyncSchema();
             Collection<string> tables = new Collection<string>();
             Collection<string> missingTables = new Collection<string>();
+
             foreach (var tableMetadata in groupMetadata.TablesMetadata)
                 tables.Add(tableMetadata.TableName);
 
@@ -237,6 +236,7 @@ namespace SpServerSync.Data
             }
 
             // FIX: Get schema from somewhere (possibly the adapter or a temporary schema)
+            // Possible performance hit when in mobile
 
             EnumerateChanges(groupMetadata, syncSession, syncContext, schema);
 
@@ -246,12 +246,22 @@ namespace SpServerSync.Data
             return syncContext;
         }
 
+        /// <summary>
+        /// Enumerates the changes from the server and puts them to the synccontext object
+        /// </summary>
+        /// <param name="groupMetadata">the metadata about the synchronization tables</param>
+        /// <param name="syncSession">the object that contains synchronization variables</param>
+        /// <param name="syncContext">the synchronization context to be changed</param>
+        /// <param name="schema">the schema of the synchronization tables</param>
         private void EnumerateChanges(SyncGroupMetadata groupMetadata, SyncSession syncSession, SyncContext syncContext, SyncSchema schema)
         {
             SyncStage syncStage = SyncStage.DownloadingChanges;
-            SpSyncTableAnchorCollection newSyncAnchor = new SpSyncTableAnchorCollection();
+
+            SpSyncGroupAnchor newSyncAnchor = new SpSyncGroupAnchor();
 
             int pages = 0;
+
+            bool hasMoreData = false;
 
             foreach (SyncTableMetadata tableMetadata in groupMetadata.TablesMetadata)
             {
@@ -263,9 +273,7 @@ namespace SpServerSync.Data
                 if (adapter == null)
                     throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, 
                         Messages.InvalidTableName, tableMetadata.TableName));
-
-                
-                // SpSyncAnchor anchor 
+               
                 if (!schema.SchemaDataSet.Tables.Contains(tableMetadata.TableName))
                     throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, 
                         Messages.TableNotInSchema, tableMetadata.TableName));
@@ -278,11 +286,12 @@ namespace SpServerSync.Data
                 DataTable updateTable = dataTable.Clone();
                 DataTable deleteTable = dataTable.Clone();
 
-                SpSyncAnchor tableAnchor = new SpSyncAnchor();
+                SpSyncAnchor tableAnchor = SpSyncAnchor.Empty;
 
-                if (tableMetadata.LastReceivedAnchor.Anchor != null)
+                if (tableMetadata.LastReceivedAnchor != null && 
+                    tableMetadata.LastReceivedAnchor.Anchor != null)
                 {
-                    SpSyncTableAnchorCollection anchors = SpSyncTableAnchorCollection.Deserialize(tableMetadata.LastReceivedAnchor.Anchor);
+                    SpSyncGroupAnchor anchors = SpSyncGroupAnchor.Deserialize(tableMetadata.LastReceivedAnchor.Anchor);
                     if (anchors != null)
                     {
                         if (anchors.Contains(tableMetadata.TableName))
@@ -293,15 +302,13 @@ namespace SpServerSync.Data
                     }
                 }
 
-                SpSyncAnchor newAnchor = null;
+                SpSyncAnchor newAnchor = SpSyncAnchor.Empty;
                 
                 try
                 {
                     newAnchor = adapter.SelectIncremental(tableAnchor, BatchSize, Connection, insertTable, updateTable, deleteTable);
 
-                    // calculate the total pages approximately
-                    // if there is more page to fetch the
-                    pages += newAnchor.PagingToken != null ? newAnchor.PageNumber + 1 : newAnchor.PageNumber;
+                    hasMoreData = hasMoreData || newAnchor.PagingToken != null;
 
                     foreach (DataRow row in insertTable.Rows)
                     {
@@ -353,8 +360,12 @@ namespace SpServerSync.Data
             }
 
             syncContext.NewAnchor = new SyncAnchor();
-            syncContext.NewAnchor.Anchor = SpSyncTableAnchorCollection.Serialize(newSyncAnchor);
-            syncContext.BatchCount = pages;
+
+            if (hasMoreData)
+                newSyncAnchor.BatchCount++;
+
+            syncContext.NewAnchor.Anchor = SpSyncGroupAnchor.Serialize(newSyncAnchor);
+            syncContext.BatchCount = newSyncAnchor.BatchCount;
         }
 
         /// <summary>

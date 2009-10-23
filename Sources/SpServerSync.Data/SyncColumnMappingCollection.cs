@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Collections.ObjectModel;
 
-namespace SpServerSync.Data
+namespace Sp.Sync.Data
 {
     public class SyncColumnMappingCollection : Collection<ColumnMapping>
     {

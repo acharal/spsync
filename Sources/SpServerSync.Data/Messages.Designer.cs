@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace SpServerSync.Data {
+namespace Sp.Sync.Data {
     using System;
     
     

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace SpServerSync.Data
+namespace Sp.Sync.Data
 {
     public class SpSyncTableAnchor
     {

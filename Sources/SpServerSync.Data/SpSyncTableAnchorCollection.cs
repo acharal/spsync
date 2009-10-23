@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-using System.Xml.Serialization;
 using System.Collections.ObjectModel;
 
-namespace SpServerSync.Data
+namespace Sp.Sync.Data
 {
     public class SpSyncTableAnchorCollection : Collection<SpSyncTableAnchor>
     {
@@ -49,26 +44,6 @@ namespace SpServerSync.Data
                 newAnchor.TableName = tableName;
                 newAnchor.Anchor = value;
                 this.Add(newAnchor);
-            }
-        }
-
-        public static SpSyncTableAnchorCollection Deserialize(byte[] buffer)
-        {
-            using (MemoryStream m = new MemoryStream(buffer))
-            {
-                var ser = new XmlSerializer(typeof(SpSyncTableAnchorCollection));
-                object o = ser.Deserialize(m);
-                return o as SpSyncTableAnchorCollection;
-            }
-        }
-
-        public static byte[] Serialize(SpSyncTableAnchorCollection x)
-        {
-            using (MemoryStream m = new MemoryStream())
-            {
-                var ser = new XmlSerializer(typeof(SpSyncTableAnchorCollection));
-                ser.Serialize(m, x);
-                return m.GetBuffer();
             }
         }
     }

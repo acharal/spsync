@@ -7,7 +7,7 @@ using System.Globalization;
 using System.Collections.ObjectModel;
 using Microsoft.Synchronization.Data;
 
-namespace SpServerSync.Data
+namespace Sp.Sync.Data
 {
     /// <summary>
     /// The SpSyncAdapter serves as the bridge between the synchronization provider
@@ -582,7 +582,7 @@ namespace SpServerSync.Data
 
             if (changes.HasMoreData())
             {
-                nextAnchor = new SpSyncAnchor(currentAnchor.NextChangesToken, changes.NextPage, currentAnchor.PageNumber + 1);
+                nextAnchor = new SpSyncAnchor(currentAnchor.NextChangesToken, changes.NextPage);
                 nextAnchor.NextChangesAnchor = nextChanges;
             }
 
@@ -602,7 +602,7 @@ namespace SpServerSync.Data
 
             if (nextPageToken != null)
             {
-                nextAnchor = new SpSyncAnchor(currentAnchor.NextChangesToken, nextPageToken, currentAnchor.PageNumber + 1);
+                nextAnchor = new SpSyncAnchor(currentAnchor.NextChangesToken, nextPageToken);
                 nextAnchor.NextChangesAnchor = nextChanges;
             }
 

@@ -1,6 +1,7 @@
-﻿using SpServerSync.Data;
+﻿using Sp.Sync.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-namespace SpServerSync.Data.Tests
+
+namespace Sp.Sync.Data.Tests
 {
     
     
@@ -77,21 +78,7 @@ namespace SpServerSync.Data.Tests
             Assert.Inconclusive("Verify the correctness of this test method.");
         }
 
-        /// <summary>
-        ///A test for PageNumber
-        ///</summary>
-        [TestMethod()]
-        public void PageNumberTest()
-        {
-            SpSyncAnchor target = new SpSyncAnchor(); // TODO: Initialize to an appropriate value
-            int expected = 0; // TODO: Initialize to an appropriate value
-            int actual;
-            target.PageNumber = expected;
-            actual = target.PageNumber;
-            Assert.AreEqual(expected, actual);
-            Assert.Inconclusive("Verify the correctness of this test method.");
-        }
-
+        
         /// <summary>
         ///A test for NextChangesToken
         ///</summary>
@@ -140,19 +127,6 @@ namespace SpServerSync.Data.Tests
         public void SpSyncAnchorConstructorTest2()
         {
             SpSyncAnchor target = new SpSyncAnchor();
-            Assert.Inconclusive("TODO: Implement code to verify target");
-        }
-
-        /// <summary>
-        ///A test for SpSyncAnchor Constructor
-        ///</summary>
-        [TestMethod()]
-        public void SpSyncAnchorConstructorTest1()
-        {
-            string changeToken = string.Empty; // TODO: Initialize to an appropriate value
-            string pageToken = string.Empty; // TODO: Initialize to an appropriate value
-            int num = 0; // TODO: Initialize to an appropriate value
-            SpSyncAnchor target = new SpSyncAnchor(changeToken, pageToken, num);
             Assert.Inconclusive("TODO: Implement code to verify target");
         }
 

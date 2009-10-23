@@ -4,7 +4,8 @@ using System.Linq;
 using System.Text;
 using Microsoft.Synchronization;
 using Microsoft.Synchronization.Data.SqlServerCe;
-using SpServerSync.Data;
+using Sp.Sync.Data;
+using Sp.Sync.Data.Server;
 
 namespace SpSyncSample
 {
@@ -18,7 +19,7 @@ namespace SpSyncSample
             string sqlceConnString = "Data Source=local.sdf";
 
             LocalProvider  = new SqlCeClientSyncProvider(sqlceConnString);
-            RemoteProvider = new SpServerSyncProvider("http://testintranet", "/crm3");
+            RemoteProvider = new SpServerSyncProvider("http://testintranet/crm3");
             (RemoteProvider as SpServerSyncProvider).BatchSize = 100;
             InitializeTypeMappings();
             InitializeAdapters();
@@ -63,7 +64,7 @@ namespace SpSyncSample
             // adapter1.RowGuidColumn = "GUID";
             // adapter1.FilterClause = "<Query><Where><Eq><FieldRef Name='ContentType' /> <Value Type='Text'>Person</Value></Eq></Where></Query>";
 
-            (RemoteProvider as SpServerSync.Data.SpServerSyncProvider).SyncAdapters.Add(adapter1);
+            (RemoteProvider as SpServerSyncProvider).SyncAdapters.Add(adapter1);
         }
 
         protected virtual void OnInitialized() 

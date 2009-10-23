@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-namespace SpServerSync.Data
+namespace Sp.Sync.Data
 {
     public class SpSyncAdapterCollection : Collection<SpSyncAdapter>
     {

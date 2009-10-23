@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace SpServerSync.Data
+﻿
+namespace Sp.Sync.Data
 {
     public class ColumnMapping
     {
@@ -13,8 +9,8 @@ namespace SpServerSync.Data
             ServerColumn = serverColumn;
         }
 
-        public string ClientColumn;
+        public string ClientColumn { private set; get; }
 
-        public string ServerColumn;
+        public string ServerColumn { private set; get; }
     }
 }

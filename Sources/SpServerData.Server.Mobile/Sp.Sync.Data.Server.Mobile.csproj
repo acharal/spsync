@@ -59,6 +59,9 @@
     </Compile>
     <Compile Include="..\SpServerSync.Data\Messages.Designer.cs">
       <Link>Messages.Designer.cs</Link>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Messages.resx</DependentUpon>
     </Compile>
     <Compile Include="..\SpServerSync.Data\SpServerSyncProvider.cs">
       <Link>SpServerSyncProvider.cs</Link>
@@ -71,6 +74,9 @@
     </Compile>
     <Compile Include="..\SpServerSync.Data\SpSyncAnchor.cs">
       <Link>SpSyncAnchor.cs</Link>
+    </Compile>
+    <Compile Include="..\SpServerSync.Data\SpSyncGroupAnchor.cs">
+      <Link>SpSyncGroupAnchor.cs</Link>
     </Compile>
     <Compile Include="..\SpServerSync.Data\SpSyncTableAnchor.cs">
       <Link>SpSyncTableAnchor.cs</Link>
@@ -101,6 +107,8 @@
   <ItemGroup>
     <EmbeddedResource Include="..\SpServerSync.Data\Messages.resx">
       <Link>Messages.resx</Link>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Messages1.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CompactFramework.CSharp.targets" />

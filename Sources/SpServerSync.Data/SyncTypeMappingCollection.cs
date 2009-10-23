@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 
-namespace SpServerSync.Data
+namespace Sp.Sync.Data
 {
     public class SyncTypeMappingCollection : Collection<TypeMapping>
     {
