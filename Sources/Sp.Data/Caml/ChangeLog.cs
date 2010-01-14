@@ -16,5 +16,9 @@ namespace Sp.Data.Caml
 
         public ListDef NewListDef;
 
+        public bool InvalidToken
+        {
+            get { return base.Count == 1 && base[0].Command == "InvalidToken"; }
+        }
     }
 }

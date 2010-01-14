@@ -122,8 +122,9 @@ namespace Sp.Data.Caml
         public static ChangeItem GetCamlChangeItem(this XElement xmlNode)
         {
             ChangeItem c = new ChangeItem();
-            c.ListItemID = Int32.Parse(xmlNode.Value);
             c.Command = xmlNode.Attribute("ChangeType").Value;
+            if (c.Command != "InvalidToken")
+                c.ListItemID = Int32.Parse(xmlNode.Value);
             return c;
         }
 
