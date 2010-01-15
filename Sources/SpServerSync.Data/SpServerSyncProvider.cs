@@ -62,6 +62,8 @@ namespace Sp.Sync.Data.Server
         /// </summary>
         public SyncSchema Schema { get; set; }
 
+        private SyncSchema CacheSchema { get; set; }
+
         /// <summary>
         /// Gets the collection of the sharepoint synchronization adapters
         /// </summary>
@@ -222,7 +224,7 @@ namespace Sp.Sync.Data.Server
                 tables.Add(tableMetadata.TableName);
 
             if (tables.Count > 0)
-                schema = GetSchemaFromDatabase(tables, out missingTables);
+                schema = GetSchemaInternal(tables, out missingTables);
 
             if (missingTables != null)
             {
@@ -378,24 +380,9 @@ namespace Sp.Sync.Data.Server
         /// <returns>A SyncSchema object that contains the schema for each table that is specified.</returns>
         public override SyncSchema GetSchema(Collection<string> tableNames, SyncSession syncSession)
         {
-            SyncSchema schema = null;
             Collection<string> missingTables = null;
-            Collection<string> missingTables2 = null;
-            
-            if (Schema != null)
-            {
-                schema = GetSchemaFromSchemaDataset(tableNames, out missingTables2);
 
-                if (missingTables != null)
-                {
-                    SyncSchema schema2 = GetSchemaFromDatabase(missingTables2, out missingTables);
-                    schema.Merge(schema2);
-                }
-            }
-            else
-            {
-                schema = GetSchemaFromDatabase(tableNames, out missingTables);
-            }
+            SyncSchema schema = GetSchemaInternal(tableNames, out missingTables);
 
             if (missingTables != null)
             {
@@ -468,6 +455,38 @@ namespace Sp.Sync.Data.Server
         }
 
         #endregion 
+
+        protected SyncSchema GetSchemaInternal(Collection<string> tableNames, out Collection<string> missingTables)
+        {
+            SyncSchema schema = null;
+            Collection<string> missingTables2 = null;
+            
+            missingTables = new Collection<string>();
+
+            if (CacheSchema != null)
+            {
+                return CacheSchema;
+            }
+
+            if (Schema != null)
+            {
+                schema = GetSchemaFromSchemaDataset(tableNames, out missingTables2);
+
+                if (missingTables2 != null)
+                {
+                    SyncSchema schema2 = GetSchemaFromDatabase(missingTables2, out missingTables);
+                    schema.Merge(schema2);
+                }
+            }
+            else
+            {
+                schema = GetSchemaFromDatabase(tableNames, out missingTables);
+            }
+
+            CacheSchema = schema;
+
+            return schema;
+        }
 
         /// <summary>
         /// Gets a SyncSchema object created from the existing DataSet defined by the user
@@ -559,12 +578,14 @@ namespace Sp.Sync.Data.Server
                     try
                     {
                         dataTable = adapter.FillSchema(dataTable, Connection);
-                        dataTable.TableName = tableName;    // rename of the table?
+                        dataTable.TableName = tableName;
                         schema.SchemaDataSet.Tables.Add(dataTable);
                     }
                     catch (Exception e)
                     {
                         missingTables.Add(tableName);
+                        if (SyncTracer.IsErrorEnabled())
+                            SyncTracer.Error(e.ToString());
                     }
                 }
                 else

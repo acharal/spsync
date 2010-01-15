@@ -56,6 +56,37 @@ namespace Sp.Data
             }
         }
 
+        private void ParseConnectionString(string connString)
+        {
+
+            _server = connString;
+
+            /*
+            if (String.IsNullOrEmpty(connString))
+                throw new ArgumentNullException("connString");
+
+            DbConnectionStringBuilder builder = new DbConnectionStringBuilder();
+
+            builder.ConnectionString = connString;
+
+            _server = builder["Data Source"] as string;
+
+            _siteName = builder["Initial Catalog"] as string;
+
+            string username = builder["User ID"] as string;
+
+            string password = builder["Password"] as string;
+
+            if (username != null && password != null)
+                _credentials = new NetworkCredential(username, password);
+            */
+        }
+
+        private string BuildConnectionString()
+        {
+            throw new NotImplementedException();
+        }
+
         #region IDbConnection Members
 
         public IDbTransaction BeginTransaction(IsolationLevel il)
@@ -130,41 +161,10 @@ namespace Sp.Data
 
         public ConnectionState State
         {
-            get { return _state;  }
+            get { return _state; }
         }
 
         #endregion
-
-        private void ParseConnectionString(string connString)
-        {
-
-            _server = connString;
-
-            /*
-            if (String.IsNullOrEmpty(connString))
-                throw new ArgumentNullException("connString");
-
-            DbConnectionStringBuilder builder = new DbConnectionStringBuilder();
-
-            builder.ConnectionString = connString;
-
-            _server = builder["Data Source"] as string;
-
-            _siteName = builder["Initial Catalog"] as string;
-
-            string username = builder["User ID"] as string;
-
-            string password = builder["Password"] as string;
-
-            if (username != null && password != null)
-                _credentials = new NetworkCredential(username, password);
-            */
-        }
-
-        private string BuildConnectionString()
-        {
-            throw new NotImplementedException();
-        }
 
         #region IDisposable Members
 
@@ -203,8 +203,6 @@ namespace Sp.Data
                 queryDoc = new XmlDocument();
                 queryDoc.LoadXml(query);
             }
-
-
 
             XmlNode response = listService.GetListItemChangesSinceToken(
                 listName,
