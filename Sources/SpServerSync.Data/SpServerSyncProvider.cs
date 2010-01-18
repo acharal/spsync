@@ -485,9 +485,6 @@ namespace Sp.Sync.Data.Server
 
             CacheSchema = schema;
 
-            if (missingTables.Count == 0)
-                missingTables = null;
-
             return schema;
         }
 
