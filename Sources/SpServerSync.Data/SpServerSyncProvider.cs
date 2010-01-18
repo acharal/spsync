@@ -463,10 +463,12 @@ namespace Sp.Sync.Data.Server
             
             missingTables = new Collection<string>();
 
+            /*
             if (CacheSchema != null)
             {
                 return CacheSchema;
             }
+            */
 
             if (Schema != null)
             {
@@ -483,7 +485,7 @@ namespace Sp.Sync.Data.Server
                 schema = GetSchemaFromDatabase(tableNames, out missingTables);
             }
 
-            CacheSchema = schema;
+            //CacheSchema = schema;
 
             return schema;
         }
