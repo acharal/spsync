@@ -62,8 +62,6 @@ namespace Sp.Sync.Data.Server
         /// </summary>
         public SyncSchema Schema { get; set; }
 
-        private SyncSchema CacheSchema { get; set; }
-
         /// <summary>
         /// Gets the collection of the sharepoint synchronization adapters
         /// </summary>
@@ -282,6 +280,8 @@ namespace Sp.Sync.Data.Server
 
                 SyncTableProgress tableProgress = syncContext.GroupProgress.FindTableProgress(tableMetadata.TableName);
 
+
+
                 DataTable insertTable = dataTable.Clone();
                 DataTable updateTable = dataTable.Clone();
                 DataTable deleteTable = dataTable.Clone();
@@ -306,13 +306,20 @@ namespace Sp.Sync.Data.Server
                 
                 try
                 {
-                    newAnchor = adapter.SelectIncremental(tableAnchor, BatchSize, Connection, insertTable, updateTable, deleteTable);
+                    if (tableMetadata.SyncDirection == SyncDirection.Snapshot)
+                    {
+                        newAnchor = adapter.SelectAll(tableAnchor, BatchSize, updateTable, Connection);
+                    }
+                    else
+                    {
+                        newAnchor = adapter.SelectIncremental(tableAnchor, BatchSize, Connection, insertTable, updateTable, deleteTable);
+                    }
 
                     hasMoreData = hasMoreData || newAnchor.PagingToken != null;
 
                     foreach (DataRow row in insertTable.Rows)
                     {
-                        row.SetAdded();
+                        row.SetModified();
                         dataTable.ImportRow(row);
                         tableProgress.Inserts++;
                     }
@@ -463,13 +470,6 @@ namespace Sp.Sync.Data.Server
             
             missingTables = new Collection<string>();
 
-            /*
-            if (CacheSchema != null)
-            {
-                return CacheSchema;
-            }
-            */
-
             if (Schema != null)
             {
                 schema = GetSchemaFromSchemaDataset(tableNames, out missingTables2);
@@ -484,9 +484,6 @@ namespace Sp.Sync.Data.Server
             {
                 schema = GetSchemaFromDatabase(tableNames, out missingTables);
             }
-
-            //CacheSchema = schema;
-
             return schema;
         }
 

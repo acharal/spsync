@@ -40,6 +40,10 @@ namespace Sp.Sync.Data
             get {
                 return base.Items[index];
             }
+
+            set {
+                base.Items[index] = value;
+            }
         }
     }
 

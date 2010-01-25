@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Collections.ObjectModel;
 using Microsoft.Synchronization.Data;
+using System.Xml.Serialization;
 
 namespace Sp.Sync.Data
 {
@@ -19,13 +20,13 @@ namespace Sp.Sync.Data
         /// Gets a collection of ColumnMapping objects for the table. 
         /// These objects map columns in a server table to the corresponding columns in a client table.
         /// </summary>
-        public SyncColumnMappingCollection ColumnMappings { get; private set; }
+        public SyncColumnMappingCollection ColumnMappings { get; set; }
 
         /// <summary>
         /// Gets a collection of TypeMapping object for tha table
         /// These objects maps the sharepoint server fields to the corresponding datatype columns in a sql table.
         /// </summary>
-        public SyncTypeMappingCollection TypeMappings { get; private set; }
+        public SyncTypeMappingCollection TypeMappings { get; set; }
 
         /// <summary>
         /// Gets or sets the name of the Sharepoint list
@@ -61,7 +62,7 @@ namespace Sp.Sync.Data
         /// Gets the names of the columns that the table contains.
         /// </summary>
         /// <remarks>Used to project a sharepoint list to certain columns.</remarks>
-        public SyncDataColumnCollection DataColumns { get; private set; }
+        public SyncDataColumnCollection DataColumns { get; set; }
 
         /// <summary>
         /// Gets or sets the name of a rowguid column
@@ -71,8 +72,15 @@ namespace Sp.Sync.Data
         /// <summary>
         /// Gets or sets the current transaction to the sharepoint server
         /// </summary>
+        [XmlIgnore]
         public SpTransaction Transaction { set; get; }
 
+
+        public SpSyncAdapter()
+        { 
+        
+        }
+        
         /// <summary>
         /// Initializes a new SpSyncAdapter object and adapts it to a list
         /// </summary>
@@ -88,6 +96,7 @@ namespace Sp.Sync.Data
                 throw new ArgumentNullException("listName");
 
             ListName = listName;
+            TableName = listName;
             ViewName = viewName;
             ColumnMappings = new SyncColumnMappingCollection();
             TypeMappings = new SyncTypeMappingCollection();
@@ -413,7 +422,7 @@ namespace Sp.Sync.Data
                     dataTable.Rows.Add(row);
                 }
             }
-
+            dataTable.AcceptChanges();
             return CalculateNextAnchor(anchor, listItems.NextPage);
         }
 

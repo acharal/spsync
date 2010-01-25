@@ -12,8 +12,6 @@ namespace Sp.Data
     {
         private ConnectionState _state;
 
-        // private string _connectionString;
-
         private int _connectionTimeout = 100000000;
 
         private string _server;
@@ -177,7 +175,8 @@ namespace Sp.Data
 
         #region Sharepoint specific commands
 
-        public ChangeBatch GetListItemChangesSinceToken(string listName, 
+        public ChangeBatch GetListItemChangesSinceToken(
+            string listName, 
             string viewName, 
             string query, 
             IEnumerable<string> viewFields,
@@ -190,6 +189,9 @@ namespace Sp.Data
 
             XmlDocument viewDoc = new XmlDocument();
             XmlElement viewFieldsNode = viewDoc.CreateElement("ViewFields");
+            
+            viewFieldsNode.SetAttribute("Properties", "TRUE");
+
             foreach (string field in viewFields)
             {
                 XmlElement fieldRef = viewDoc.CreateElement("FieldRef");
@@ -214,7 +216,30 @@ namespace Sp.Data
                 changeToken,
                 null);
 
-            return response.GetXElement().GetCamlChangeBatch();
+            ChangeBatch batch = response.GetXElement().GetCamlChangeBatch();
+            
+            // catch the case where no changes in list returns the same token
+            if (batch.ChangeLog.Count == 0 &&
+                batch.NextChangeBatch == changeToken)
+            {
+                // re-query with empty token in order to get the very latest change token
+                // and avoid token expiration
+                XmlNode dummyResponse = 
+                    listService.GetListItemChangesSinceToken(
+                             listName,
+                             viewName,
+                             queryDoc,
+                             viewFieldsNode,
+                             "10",
+                             queryOptions.GetCamlQueryOptions(),
+                             null,
+                             null);
+                
+                ChangeBatch batch2 = response.GetXElement().GetCamlChangeBatch();
+                batch.ChangeLog.NextLastChangeToken = batch2.ChangeLog.NextLastChangeToken;
+            }
+
+            return batch;
         }
 
         public ListItemCollection GetListItems(string listName,
@@ -231,6 +256,7 @@ namespace Sp.Data
 
             XmlDocument viewDoc = new XmlDocument();
             XmlElement viewFieldsNode = viewDoc.CreateElement("ViewFields");
+            viewFieldsNode.SetAttribute("Properties", "TRUE");
             foreach (string field in viewFields)
             {
                 XmlElement fieldRef = viewDoc.CreateElement("FieldRef");
@@ -254,7 +280,7 @@ namespace Sp.Data
                 queryOptions.GetCamlQueryOptions(),
                 null);
 
-            return response.GetXElement().GetCamlListItemCollection();
+            return response.GetXElement().GetCamlListItems();
         }
 
         public UpdateResults UpdateListItems(string listName, UpdateBatch updateBatch)
@@ -276,7 +302,6 @@ namespace Sp.Data
                 throw new ArgumentNullException("listName");
 
             XmlNode listDef = listService.GetList(listName);
-            // XmlNode node = listService.GetListAndView(listName, "My Contacts");
 
             return listDef.GetXElement().GetCamlListDef();
         }

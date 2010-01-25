@@ -78,6 +78,8 @@ namespace Sp.Data.Caml
             return view;
         }
 
+
+
         public static ListCollection GetCamlListCollection(this XElement xmlNode)
         {
             return new ListCollection(
@@ -98,6 +100,12 @@ namespace Sp.Data.Caml
 
             item.ID = Int32.Parse(item["ID"]);
             return item;
+        }
+
+        public static ListItemCollection GetCamlListItems(this XElement xmlNode)
+        {
+            return xmlNode.Element(xmlNode.GetNamespaceOfPrefix("rs") + "data")
+                .GetCamlListItemCollection();
         }
 
         public static ListItemCollection GetCamlListItemCollection(this XElement xmlNode)
