@@ -8,7 +8,7 @@
     <ProjectGuid>{2C6A7F49-6E7F-4FF2-B633-C067F31CB99F}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SpServerSync.Data</RootNamespace>
+    <RootNamespace>Sp.Sync.Data.Server</RootNamespace>
     <AssemblyName>SpServerSync.Data</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
