@@ -240,7 +240,7 @@ namespace Sp.Sync.Data.Server
 
             EnumerateChanges(groupMetadata, syncSession, syncContext, schema);
 
-            ChangesSelectedEventArgs selectedArgs = new ChangesSelectedEventArgs(groupMetadata, syncSession, syncContext, Connection, null);
+            ChangesSelectedEventArgs selectedArgs = new ChangesSelectedEventArgs(groupMetadata, syncSession, syncContext, Connection, null);//sYNC tODO
             OnChangesSelected(selectedArgs);
 
             return syncContext;
@@ -361,7 +361,7 @@ namespace Sp.Sync.Data.Server
                 }
 
                 tableProgress.DataTable = dataTable;
-                SyncProgressEventArgs args = new SyncProgressEventArgs(tableMetadata,tableProgress,groupMetadata, syncContext.GroupProgress, syncStage);
+                SyncProgressEventArgs args = new SyncProgressEventArgs(tableMetadata,tableProgress,groupMetadata, syncContext.GroupProgress, syncStage);//SYNC TODO
                 OnSyncProgress(args);
                 tableProgress.DataTable = null;
             }
