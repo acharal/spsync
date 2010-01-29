@@ -19,7 +19,7 @@ namespace Sp.Data.Caml
 
         public bool HasMoreChanges()
         {
-            return ChangeLog != null && ChangeLog.MoreChanges;
+            return (ChangeLog != null && ChangeLog.MoreChanges) || HasMoreData();
         }
 
         public bool HasMoreData()

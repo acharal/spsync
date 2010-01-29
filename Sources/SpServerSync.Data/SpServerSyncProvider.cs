@@ -315,7 +315,7 @@ namespace Sp.Sync.Data.Server
                         newAnchor = adapter.SelectIncremental(tableAnchor, BatchSize, Connection, insertTable, updateTable, deleteTable);
                     }
 
-                    hasMoreData = hasMoreData || newAnchor.PagingToken != null;
+                    hasMoreData = hasMoreData || newAnchor.HasMoreData;
 
                     foreach (DataRow row in insertTable.Rows)
                     {

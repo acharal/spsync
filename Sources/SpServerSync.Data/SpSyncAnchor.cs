@@ -19,6 +19,11 @@ namespace Sp.Sync
         /// </summary>
         public string NextChangesToken { set; get; }
 
+        /// <summary>
+        /// Sets or gets a boolean if there are more changes after this anchor
+        /// </summary>
+        public bool HasMoreData = false;
+
         public static readonly SpSyncAnchor Empty = new SpSyncAnchor();
 
         /// <summary>

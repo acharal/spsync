@@ -594,7 +594,7 @@ namespace Sp.Sync.Data
                 nextAnchor = new SpSyncAnchor(currentAnchor.NextChangesToken, changes.NextPage);
                 nextAnchor.NextChangesAnchor = nextChanges;
             }
-
+            nextAnchor.HasMoreData = changes.HasMoreChanges();
             return nextAnchor;
         }
 
