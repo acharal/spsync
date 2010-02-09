@@ -70,6 +70,15 @@ namespace Sp.Sync.Data.Server {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Column ID {0}  is not contained to table.
+        /// </summary>
+        internal static string ColumnIDNotContained {
+            get {
+                return ResourceManager.GetString("ColumnIDNotContained", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid sync table: {0}.
         /// </summary>
         internal static string InvalidTableName {
@@ -84,6 +93,15 @@ namespace Sp.Sync.Data.Server {
         internal static string MissingTables {
             get {
                 return ResourceManager.GetString("MissingTables", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There is no mapping for ID {0}.
+        /// </summary>
+        internal static string NoIDMapping {
+            get {
+                return ResourceManager.GetString("NoIDMapping", resourceCulture);
             }
         }
         

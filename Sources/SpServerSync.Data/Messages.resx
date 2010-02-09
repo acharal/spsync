@@ -120,11 +120,17 @@
   <data name="AnchorNotValidForTable" xml:space="preserve">
     <value>Anchor for table {0} is not valid</value>
   </data>
+  <data name="ColumnIDNotContained" xml:space="preserve">
+    <value>Column ID {0}  is not contained to table</value>
+  </data>
   <data name="InvalidTableName" xml:space="preserve">
     <value>Invalid sync table: {0}</value>
   </data>
   <data name="MissingTables" xml:space="preserve">
     <value>Tables {0} are missing</value>
+  </data>
+  <data name="NoIDMapping" xml:space="preserve">
+    <value>There is no mapping for ID {0}</value>
   </data>
   <data name="TableNotInSchema" xml:space="preserve">
     <value>Table {0} is not contained in the schema</value>

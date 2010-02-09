@@ -250,13 +250,23 @@ namespace Sp.Data.Caml
             method.SetAttribute("Cmd", item.Command);
             foreach (var kvp in item.ChangedItemData.Fields)
             {
-                if (kvp.Key != "ID")
+                if (kvp.Key.StartsWith("MetaInfo_"))
+                {
+                    string propertyKey = kvp.Key.Substring("MetaInfo_".Length);
+                    XmlElement f = doc.CreateElement("Field");
+                    f.SetAttribute("Name", "MetaInfo");
+                    f.SetAttribute("Property", propertyKey);
+                    f.InnerXml = kvp.Value;
+                    method.AppendChild(f);
+                }
+                else if (kvp.Key != "ID")
                 {
                     XmlElement f = doc.CreateElement("Field");
                     f.SetAttribute("Name", kvp.Key);
                     f.InnerXml = kvp.Value;
                     method.AppendChild(f);
                 }
+
             }
 
             XmlElement fid = doc.CreateElement("Field");

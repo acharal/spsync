@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Collections.ObjectModel;
 using Microsoft.Synchronization.Data;
 using System.Xml.Serialization;
+using Sp.Sync.Data.Server;
 
 namespace Sp.Sync.Data
 {
@@ -70,11 +71,16 @@ namespace Sp.Sync.Data
         public string RowGuidColumn { get; set; }
 
         /// <summary>
+        /// Gets or sets the option to include or exclude MetaInfo properties
+        /// </summary>
+        /// <remarks>Used by the sync provider to store ReplicationID</remarks>
+        public bool IncludeProperties { get; set; }
+
+        /// <summary>
         /// Gets or sets the current transaction to the sharepoint server
         /// </summary>
         [XmlIgnore]
         public SpTransaction Transaction { set; get; }
-
 
         public SpSyncAdapter()
         { 
@@ -122,7 +128,29 @@ namespace Sp.Sync.Data
 
             FillSchemaFromSharepoint(table, connection);
 
-            MapFromServerToClient(table);
+            //MapFromServerToClient(table);
+
+            if (IncludeProperties && DataColumns.Count > 0)
+            {
+                foreach (string dataColumn in DataColumns)
+                {
+                    string fieldName = GetServerColumnFromClientColumn(dataColumn);
+                    if (IsMetaInfoProperty(fieldName))
+                    {
+                        DataColumn column = new DataColumn(dataColumn, typeof(String));
+                        SetDataColumnExtendedProperty(column, "DataTypeName", "nvarchar");
+                        SetDataColumnExtendedProperty(column, "ColumnLength", "50");
+
+                        if (column.ColumnName == this.RowGuidColumn)
+                        {
+                            column.DataType = typeof(Guid);
+                            SetDataColumnExtendedProperty(column, "RowGuidCol", true);
+                            SetDataColumnExtendedProperty(column, "DataTypeName", "uniqueidentifier");
+                        }
+                        table.Columns.Add(column);
+                    }
+                }
+            }
 
             return table;
         }
@@ -209,8 +237,8 @@ namespace Sp.Sync.Data
                 throw new NotImplementedException("there is no default type mapping");
             }
 
-            column.ColumnName = field.Name;
-            column.Caption = field.DisplayName;
+            column.ColumnName =  GetClientColumnFromServerColumn(field.Name);
+            column.Caption    = GetClientColumnFromServerColumn(field.DisplayName);
             column.DataType = typeMapping.Type;
 
             SetDataColumnExtendedProperty(column, "DataTypeName", typeMapping.SqlType);
@@ -271,6 +299,8 @@ namespace Sp.Sync.Data
 
                 MapFromFieldToColumn(column, field);
 
+                // sharepoint returns as primary key the ID
+                // which is relevant to sharepoint list.
                 if (field.IsPrimaryKey)
                     primaryColumns.Add(column);
             }
@@ -335,11 +365,14 @@ namespace Sp.Sync.Data
                 DateInUtc = false
             };
 
+            IEnumerable<string> viewFields = GetViewFields();
+
             ChangeBatch changes = connection.GetListItemChangesSinceToken(
                 this.ListName,
                 this.ViewName,
                 FilterClause,
-                DataColumns,
+                viewFields,
+                IncludeProperties,
                 rowLimit,
                 queryOptions,
                 anchor.NextChangesToken);
@@ -381,6 +414,64 @@ namespace Sp.Sync.Data
             return CalculateNextAnchor(anchor, changes);
         }
 
+        public SpSyncAnchor SelectIncremental(SpSyncAnchor anchor, int rowLimit, SpConnection connection,
+            DataTable changeTable)
+        {
+
+            if (anchor == null)
+                throw new ArgumentNullException("anchor");
+            if (connection == null)
+                throw new ArgumentNullException("connection");
+
+            QueryOptions queryOptions = new QueryOptions()
+            {
+                PagingToken = anchor.PagingToken,
+                DateInUtc = false
+            };
+
+            IEnumerable<string> viewFields = GetViewFields();
+
+            ChangeBatch changes = connection.GetListItemChangesSinceToken(
+                this.ListName,
+                this.ViewName,
+                FilterClause,
+                viewFields,
+                IncludeProperties,
+                rowLimit,
+                queryOptions,
+                anchor.NextChangesToken);
+
+            foreach (ListItem item in changes.ChangedItems)
+            {
+                DataRow row = changeTable.NewRow();
+                Exception e;
+                MapListItemToDataRow(item, row, out e);
+                if (e != null)
+                {
+                    if (SyncTracer.IsErrorEnabled())
+                        SyncTracer.Error(e.ToString());
+                }
+                changeTable.Rows.Add(row);
+                row.AcceptChanges();
+                row.SetModified();
+            }
+
+            foreach (ChangeItem item in changes.ChangeLog)
+            {
+                if (ChangeCommands.IsDelete(item.Command))
+                {
+                    DataRow row = changeTable.NewRow();
+                    // FIX: Probably the ID is not mapped at all to the client table
+                    row[changeTable.PrimaryKey[0]] = item.ListItemID;
+                    changeTable.Rows.Add(row);
+                    row.AcceptChanges();
+                    row.Delete();
+                }
+            }
+            
+            return CalculateNextAnchor(anchor, changes);
+        }
+
         public SpSyncAnchor SelectAll(SpSyncAnchor anchor, int rowLimit, DataTable dataTable, SpConnection connection)
         {
 
@@ -399,11 +490,14 @@ namespace Sp.Sync.Data
                 DateInUtc = false
             };
 
+            IEnumerable<string> viewFields = GetViewFields();
+
             ListItemCollection listItems = connection.GetListItems(
                 this.ListName,
                 this.ViewName,
                 this.FilterClause,
-                DataColumns,
+                viewFields,
+                IncludeProperties,
                 rowLimit,
                 queryOptions);
 
@@ -448,7 +542,7 @@ namespace Sp.Sync.Data
             string clientIdColumn = GetClientColumnFromServerColumn("ID");
 
             if (!changes.Columns.Contains(clientIdColumn))
-                throw new InvalidOperationException("Column ID " + clientIdColumn + " is not contained to table");
+                throw new InvalidOperationException(String.Format(CultureInfo.CurrentCulture, Messages.ColumnIDNotContained, clientIdColumn));
 
             IDictionary<int, DataRow> IdMapping = new Dictionary<int, DataRow>();
 
@@ -503,7 +597,8 @@ namespace Sp.Sync.Data
                     if (!r.IsSuccess())
                     {
                         if (!IdMapping.ContainsKey(r.UpdateItemID))
-                            throw new InvalidOperationException("There is no mapping for ID " +  r.UpdateItemID);
+                            throw new InvalidOperationException(
+                                String.Format(CultureInfo.CurrentCulture, Messages.NoIDMapping, r.UpdateItemID));
 
                         DataRow clientRow = IdMapping[r.UpdateItemID];
                         errors.Add(CreateSyncError(r, clientRow));
@@ -794,6 +889,35 @@ namespace Sp.Sync.Data
 
             return false;
         }
+
+        private bool IsMetaInfoProperty(string fieldName)
+        {
+            return fieldName.StartsWith("MetaInfo_");
+        }
+
+        private IEnumerable<string> GetViewFields()
+        {
+            List<string> viewFields = new List<string>();
+            bool includeMetaInfo = IncludeProperties;
+
+            foreach (string columnName in this.DataColumns)
+            {
+                string fieldName = GetServerColumnFromClientColumn(columnName);
+                if (IsMetaInfoProperty(fieldName))
+                {
+                    includeMetaInfo = true;    
+                }
+                viewFields.Add(fieldName);
+            }
+
+            if (includeMetaInfo)
+            {
+                viewFields.Add("MetaInfo");
+            }
+
+            return viewFields;
+        }
+        
         #endregion
     }
 }

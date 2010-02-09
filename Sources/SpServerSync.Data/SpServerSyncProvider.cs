@@ -269,6 +269,113 @@ namespace Sp.Sync.Data.Server
                     adapter = this.SyncAdapters[tableMetadata.TableName];
 
                 if (adapter == null)
+                    throw new ArgumentException(String.Format(CultureInfo.CurrentCulture,
+                        Messages.InvalidTableName, tableMetadata.TableName));
+
+                if (!schema.SchemaDataSet.Tables.Contains(tableMetadata.TableName))
+                    throw new ArgumentException(String.Format(CultureInfo.CurrentCulture,
+                        Messages.TableNotInSchema, tableMetadata.TableName));
+
+                DataTable dataTable = schema.SchemaDataSet.Tables[tableMetadata.TableName].Clone();
+
+                SyncTableProgress tableProgress = syncContext.GroupProgress.FindTableProgress(tableMetadata.TableName);
+
+                SpSyncAnchor tableAnchor = SpSyncAnchor.Empty;
+
+                if (tableMetadata.LastReceivedAnchor != null &&
+                    tableMetadata.LastReceivedAnchor.Anchor != null)
+                {
+                    SpSyncGroupAnchor anchors = SpSyncGroupAnchor.Deserialize(tableMetadata.LastReceivedAnchor.Anchor);
+                    if (anchors != null)
+                    {
+                        if (anchors.Contains(tableMetadata.TableName))
+                            tableAnchor = anchors[tableMetadata.TableName];
+                        else
+                            throw new ArgumentException(String.Format(CultureInfo.CurrentCulture,
+                                Messages.AnchorNotValidForTable, tableMetadata.TableName));
+                    }
+                }
+
+                SpSyncAnchor newAnchor = SpSyncAnchor.Empty;
+
+                try
+                {
+                    if (tableMetadata.SyncDirection == SyncDirection.Snapshot)
+                    {
+                        newAnchor = adapter.SelectAll(tableAnchor, BatchSize, dataTable, Connection);
+                    }
+                    else
+                    {
+                        newAnchor = adapter.SelectIncremental(tableAnchor, BatchSize, Connection, dataTable);
+                    }
+
+                    hasMoreData = hasMoreData || newAnchor.HasMoreData;
+
+                    if (syncContext.DataSet.Tables.Contains(tableMetadata.TableName))
+                    {
+                        DataTable contextTable = syncContext.DataSet.Tables[tableMetadata.TableName];
+                        foreach (DataRow row in dataTable.Rows)
+                            contextTable.ImportRow(row);
+                    }
+                    else
+                    {
+                        dataTable.TableName = tableMetadata.TableName;
+                        syncContext.DataSet.Tables.Add(dataTable);
+                    }
+                }
+                catch (Exception e)
+                {
+                    var e2 = new Microsoft.Synchronization.SyncException("", e);
+                    throw e2;
+                }
+                finally
+                {
+                    newSyncAnchor[tableMetadata.TableName] = newAnchor;
+                }
+
+                tableProgress.DataTable = dataTable;
+                SyncProgressEventArgs args = new SyncProgressEventArgs(tableMetadata, tableProgress, groupMetadata, syncContext.GroupProgress, syncStage);//SYNC TODO
+                OnSyncProgress(args);
+                tableProgress.DataTable = null;
+            }
+
+            syncContext.NewAnchor = new SyncAnchor();
+
+            syncContext.NewAnchor.Anchor = SpSyncGroupAnchor.Serialize(newSyncAnchor);
+
+            int batchCount = groupMetadata.BatchCount == 0 ? 1 : groupMetadata.BatchCount;
+
+            if (hasMoreData)
+                syncContext.BatchCount = batchCount + 1;
+            else
+                syncContext.BatchCount = batchCount;
+
+        }
+
+        /// <summary>
+        /// Enumerates the changes from the server and puts them to the synccontext object
+        /// </summary>
+        /// <param name="groupMetadata">the metadata about the synchronization tables</param>
+        /// <param name="syncSession">the object that contains synchronization variables</param>
+        /// <param name="syncContext">the synchronization context to be changed</param>
+        /// <param name="schema">the schema of the synchronization tables</param>
+        /*
+        private void EnumerateChanges2(SyncGroupMetadata groupMetadata, SyncSession syncSession, SyncContext syncContext, SyncSchema schema)
+        {
+            SyncStage syncStage = SyncStage.DownloadingChanges;
+
+            SpSyncGroupAnchor newSyncAnchor = new SpSyncGroupAnchor();
+
+            bool hasMoreData = false;
+
+            foreach (SyncTableMetadata tableMetadata in groupMetadata.TablesMetadata)
+            {
+                SpSyncAdapter adapter = null;
+
+                if (this.SyncAdapters.Contains(tableMetadata.TableName))
+                    adapter = this.SyncAdapters[tableMetadata.TableName];
+
+                if (adapter == null)
                     throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, 
                         Messages.InvalidTableName, tableMetadata.TableName));
                
@@ -378,6 +485,7 @@ namespace Sp.Sync.Data.Server
                 syncContext.BatchCount = batchCount;
            
         }
+        */
 
         /// <summary>
         /// Returns a SyncSchema object that contains the schema for each table specified. 

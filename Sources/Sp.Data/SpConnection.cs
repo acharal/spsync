@@ -180,6 +180,7 @@ namespace Sp.Data
             string viewName, 
             string query, 
             IEnumerable<string> viewFields,
+            bool splitMetaInfo,
             int rowLimit, 
             QueryOptions queryOptions, 
             string changeToken)
@@ -190,7 +191,8 @@ namespace Sp.Data
             XmlDocument viewDoc = new XmlDocument();
             XmlElement viewFieldsNode = viewDoc.CreateElement("ViewFields");
             
-            viewFieldsNode.SetAttribute("Properties", "TRUE");
+            if (splitMetaInfo)
+                viewFieldsNode.SetAttribute("Properties", "TRUE");
 
             foreach (string field in viewFields)
             {
@@ -216,6 +218,7 @@ namespace Sp.Data
                 changeToken,
                 null);
 
+            
             ChangeBatch batch = response.GetXElement().GetCamlChangeBatch();
             
             // catch the case where no changes in list returns the same token
@@ -246,6 +249,7 @@ namespace Sp.Data
             string viewName,
             string query,
             IEnumerable<string> viewFields,
+            bool splitMetaInfo,
             int rowLimit,
             QueryOptions queryOptions)
         {
@@ -256,7 +260,10 @@ namespace Sp.Data
 
             XmlDocument viewDoc = new XmlDocument();
             XmlElement viewFieldsNode = viewDoc.CreateElement("ViewFields");
-            viewFieldsNode.SetAttribute("Properties", "TRUE");
+
+            if (splitMetaInfo)
+                viewFieldsNode.SetAttribute("Properties", "TRUE");
+
             foreach (string field in viewFields)
             {
                 XmlElement fieldRef = viewDoc.CreateElement("FieldRef");
