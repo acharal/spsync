@@ -128,8 +128,7 @@ namespace Sp.Sync.Data
 
             FillSchemaFromSharepoint(table, connection);
 
-            //MapFromServerToClient(table);
-
+            
             if (IncludeProperties && DataColumns.Count > 0)
             {
                 foreach (string dataColumn in DataColumns)
@@ -151,6 +150,8 @@ namespace Sp.Sync.Data
                     }
                 }
             }
+            
+            MapFromServerToClient(table);
 
             return table;
         }
@@ -237,8 +238,8 @@ namespace Sp.Sync.Data
                 throw new NotImplementedException("there is no default type mapping");
             }
 
-            column.ColumnName =  GetClientColumnFromServerColumn(field.Name);
-            column.Caption    = GetClientColumnFromServerColumn(field.DisplayName);
+            column.ColumnName = field.Name;
+            column.Caption    = field.DisplayName;
             column.DataType = typeMapping.Type;
 
             SetDataColumnExtendedProperty(column, "DataTypeName", typeMapping.SqlType);
