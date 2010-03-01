@@ -587,6 +587,8 @@ namespace Sp.Sync.Data.Server
                     SyncSchema schema2 = GetSchemaFromDatabase(missingTables2, out missingTables);
                     schema.Merge(schema2);
                 }
+                if (missingTables.Count == 0)
+                    missingTables = null;
             }
             else
             {
@@ -650,6 +652,11 @@ namespace Sp.Sync.Data.Server
 
             if (missingTables.Count == 0)
                 missingTables = null;
+
+            //CODE FIX TO AVOID THE DREADED NOTORIOUS "TESTINTRANET" BUG
+            Connection.Open();
+            Connection.Close();
+            //END OF CODE FIX
 
             return schema;         
 
