@@ -32,7 +32,7 @@ namespace Sp.Data.WS {
         public Lists()
         {
             this.Timeout = 200000000;
-            this.Url = "http://testintranet/crm/_vti_bin/Lists.asmx";
+            //this.Url = "http://testintranet/crm/_vti_bin/Lists.asmx";
         }
 
         /// <remarks/>
