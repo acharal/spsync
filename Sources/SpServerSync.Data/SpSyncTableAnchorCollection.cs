@@ -11,19 +11,19 @@ namespace Sp.Sync.Data
 
         }
 
-        public bool Contains(string tableName)
+        public bool Contains(string site, string tableName)
         {
             foreach (SpSyncTableAnchor tableAnchor in this)
-                if (tableAnchor.TableName == tableName)
+                if (tableAnchor.TableName == tableName && tableAnchor.SiteName == site)
                     return true;
             return false;
         }
 
-        public SpSyncAnchor this[string tableName]
+        public SpSyncAnchor this[string site, string tableName]
         { 
             get {
                 foreach (SpSyncTableAnchor tableAnchor in this)
-                    if (tableAnchor.TableName == tableName)
+                    if (tableAnchor.TableName == tableName && tableAnchor.SiteName == site)
                         return tableAnchor.Anchor;
 
                 return null;
@@ -33,7 +33,7 @@ namespace Sp.Sync.Data
             {
                 foreach (SpSyncTableAnchor tableAnchor in this)
                 {
-                    if (tableAnchor.TableName == tableName)
+                    if (tableAnchor.TableName == tableName && tableAnchor.SiteName == site)
                     {
                         tableAnchor.Anchor = value;
                         return;
@@ -42,6 +42,7 @@ namespace Sp.Sync.Data
 
                 SpSyncTableAnchor newAnchor = new SpSyncTableAnchor();
                 newAnchor.TableName = tableName;
+                newAnchor.SiteName = site;
                 newAnchor.Anchor = value;
                 this.Add(newAnchor);
             }

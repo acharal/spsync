@@ -459,11 +459,12 @@ namespace Sp.Sync.Data
 
             foreach (ChangeItem item in changes.ChangeLog)
             {
+                string clientColumnName = GetClientColumnFromServerColumn("ID");
                 if (ChangeCommands.IsDelete(item.Command))
                 {
                     DataRow row = changeTable.NewRow();
                     // FIX: Probably the ID is not mapped at all to the client table
-                    row[changeTable.PrimaryKey[0]] = item.ListItemID;
+                    row[clientColumnName] = item.ListItemID;
                     changeTable.Rows.Add(row);
                     row.AcceptChanges();
                     row.Delete();

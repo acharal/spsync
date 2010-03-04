@@ -71,7 +71,9 @@ namespace Sp.Sync.Data.Server
         /// Gets the sharepoint connection
         /// </summary>
         public SpConnection Connection { get; private set;  }
-        
+
+        private string connString;
+
         /// <summary>
         /// Initializes a new instance of the SpServerSyncProvider class.
         /// </summary>
@@ -79,12 +81,14 @@ namespace Sp.Sync.Data.Server
         {
             SyncAdapters = new SpSyncAdapterCollection();
             Connection = new SpConnection(connectionString);
+            connString = connectionString;
         }
 
         public SpServerSyncProvider(string server, string username, string password, string domain)
         {
             SyncAdapters = new SpSyncAdapterCollection();
             Connection = new SpConnection(server, username, password, domain);
+            connString = server;
         }
 
         /// <summary>
@@ -288,11 +292,9 @@ namespace Sp.Sync.Data.Server
                     SpSyncGroupAnchor anchors = SpSyncGroupAnchor.Deserialize(tableMetadata.LastReceivedAnchor.Anchor);
                     if (anchors != null)
                     {
-                        if (anchors.Contains(tableMetadata.TableName))
-                            tableAnchor = anchors[tableMetadata.TableName];
-                        else
-                            throw new ArgumentException(String.Format(CultureInfo.CurrentCulture,
-                                Messages.AnchorNotValidForTable, tableMetadata.TableName));
+                        if (anchors.Contains(connString, tableMetadata.TableName))
+                            tableAnchor = anchors[connString, tableMetadata.TableName];
+                        newSyncAnchor = anchors;
                     }
                 }
 
@@ -330,7 +332,7 @@ namespace Sp.Sync.Data.Server
                 }
                 finally
                 {
-                    newSyncAnchor[tableMetadata.TableName] = newAnchor;
+                    newSyncAnchor[connString, tableMetadata.TableName] = newAnchor;
                 }
 
                 tableProgress.DataTable = dataTable;

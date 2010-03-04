@@ -7,6 +7,7 @@ namespace Sp.Sync.Data
 {
     public class SpSyncTableAnchor
     {
+        public string SiteName;
         public string TableName;
         public SpSyncAnchor Anchor;
     }
