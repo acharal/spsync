@@ -819,6 +819,11 @@ namespace Sp.Sync.Data
             foreach (DataColumn column in row.Table.Columns)
             {
                 string fieldName = GetServerColumnFromClientColumn(column.ColumnName);
+                
+                if (this.DataColumns.Count > 0 &&
+                    !this.DataColumns.Contains(fieldName))
+                    continue;
+
                 string fieldValue;
                 if (column.DataType == typeof(DateTime) && row[column] != null)
                     fieldValue = ((DateTime)row[column]).ToString("yyyy-MM-ddTHH:mm:ssZ");
