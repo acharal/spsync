@@ -783,6 +783,8 @@ namespace Sp.Sync.Data
                             row[col] = new Guid(cell.Value);
                         else if (col.DataType == typeof(DateTime))
                             row[col] = DateTime.Parse(cell.Value);
+                        else if (col.DataType == typeof(Boolean))
+                            row[col] = (cell.Value == "1" ? true : false);
                         else
                             row[col] = cell.Value;
                     }
