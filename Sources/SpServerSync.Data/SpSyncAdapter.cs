@@ -570,7 +570,13 @@ namespace Sp.Sync.Data
                 
                 if (u.Command != UpdateCommands.Insert)
                 {
-                    u.ListItemID = (int)row[clientIdColumn];
+                    if (!(row[clientIdColumn] is DBNull))
+                    {
+                        u.ListItemID = (int)row[clientIdColumn];
+                    }
+                    else {
+                        continue;
+                    }
                 }
 
                 if (u.Command != UpdateCommands.Delete)
