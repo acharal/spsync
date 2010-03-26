@@ -835,16 +835,14 @@ namespace Sp.Sync.Data
                 string fieldValue;
                 if (column.DataType == typeof(DateTime) && row[column] != null)
                     //fieldValue = ((DateTime)row[column]).ToString("yyyy-MM-ddTHH:mm:ssZ");
-                    //FIX FOR DBNULL DATETIME
-                    try
-                    {
-                        fieldValue = ((DateTime)row[column]).ToString("yyyy-MM-ddTHH:mm:ssZ");
-                    }
-                    catch(Exception)
-                    {
+                //FIX FOR DBNULL DATETIME
+                {
+                    if (row[column] is DBNull)
                         fieldValue = (DateTime.Now).ToString("yyyy-MM-ddTHH:mm:ssZ");
-                    }
-                    //END OF FIX FOR DBNULL DATETIME
+                    else
+                        fieldValue = ((DateTime)row[column]).ToString("yyyy-MM-ddTHH:mm:ssZ");
+                }
+                //END OF FIX FOR DBNULL DATETIME
                 else
                     fieldValue = row[column].ToString();
 
