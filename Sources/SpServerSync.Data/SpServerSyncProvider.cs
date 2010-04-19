@@ -107,7 +107,7 @@ namespace Sp.Sync.Data.Server
         /// <param name="syncSession">A SyncSession object that contains synchronization session variables, such as the ID of the client that is synchronizing.</param>
         /// <returns>A SyncContext object that contains synchronization data and metadata.</returns>
         public override SyncContext ApplyChanges(SyncGroupMetadata groupMetadata, DataSet dataSet, SyncSession syncSession)
-        {
+        {//UPLOAD
             if (groupMetadata == null)
                 throw new ArgumentNullException("groupMetadata");
             if (syncSession == null)
@@ -164,7 +164,7 @@ namespace Sp.Sync.Data.Server
                 try
                 {
                     Collection<SyncConflict> conflicts;
-                    
+                    int changesCount = dataTable.Rows.Count;
                     adapter.Update(dataTable, Connection, out conflicts);
 
                     if (conflicts != null)
@@ -184,7 +184,7 @@ namespace Sp.Sync.Data.Server
                             }
                         }
                     }
-                    tableProgress.ChangesApplied = dataTable.Rows.Count - tableProgress.ChangesFailed;
+                    tableProgress.ChangesApplied = changesCount - tableProgress.ChangesFailed;
                 }
                 catch (Exception e)
                 {
@@ -205,7 +205,7 @@ namespace Sp.Sync.Data.Server
         /// <param name="syncSession">A SyncSession object that contains synchronization session variables, such as the ID of the client that is synchronizing.</param>
         /// <returns>A SyncContext object that contains synchronization data and metadata.</returns>
         public override SyncContext GetChanges(SyncGroupMetadata groupMetadata, SyncSession syncSession)
-        {
+        {//#DOWNLOAD a batch 1
             if (groupMetadata == null)
                 throw new ArgumentNullException("groupMetadata");
             if (syncSession == null)
@@ -243,7 +243,7 @@ namespace Sp.Sync.Data.Server
             // Possible performance hit when in mobile
 
             EnumerateChanges(groupMetadata, syncSession, syncContext, schema);
-
+            
             ChangesSelectedEventArgs selectedArgs = new ChangesSelectedEventArgs(groupMetadata, syncSession, syncContext, Connection, null);//sYNC tODO
             OnChangesSelected(selectedArgs);
 
@@ -258,7 +258,7 @@ namespace Sp.Sync.Data.Server
         /// <param name="syncContext">the synchronization context to be changed</param>
         /// <param name="schema">the schema of the synchronization tables</param>
         private void EnumerateChanges(SyncGroupMetadata groupMetadata, SyncSession syncSession, SyncContext syncContext, SyncSchema schema)
-        {
+        {//#DOWNLOAD a batch 2
             SyncStage syncStage = SyncStage.DownloadingChanges;
 
             SpSyncGroupAnchor newSyncAnchor = new SpSyncGroupAnchor();
@@ -351,7 +351,7 @@ namespace Sp.Sync.Data.Server
                 syncContext.BatchCount = batchCount + 1;
             else
                 syncContext.BatchCount = batchCount;
-
+            
         }
 
         /// <summary>

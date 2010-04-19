@@ -417,7 +417,7 @@ namespace Sp.Sync.Data
 
         public SpSyncAnchor SelectIncremental(SpSyncAnchor anchor, int rowLimit, SpConnection connection,
             DataTable changeTable)
-        {
+        {//#DOWNLOAD in batches - step 3
 
             if (anchor == null)
                 throw new ArgumentNullException("anchor");
@@ -521,7 +521,20 @@ namespace Sp.Sync.Data
             dataTable.AcceptChanges();
             return CalculateNextAnchor(anchor, listItems.NextPage);
         }
-
+        private void CopyRows(DataTable origin, DataTable destination, int firstRowIndex,int RowsCount)
+        {
+            try
+            {
+                if (origin.Rows.Count < (firstRowIndex + RowsCount))
+                    RowsCount = origin.Rows.Count - firstRowIndex;
+                for (int i = firstRowIndex; i < firstRowIndex + RowsCount; i++)
+                {
+                    destination.ImportRow(origin.Rows[i]);
+                }
+            }
+            catch (Exception ex)
+            { }
+        }
         /// <summary>
         /// 
         /// </summary>
@@ -530,7 +543,8 @@ namespace Sp.Sync.Data
         /// <param name="deletes"></param>
         /// <param name="connection"></param>
         public void Update(DataTable changes, SpConnection connection, out Collection<SyncConflict> errors)
-        {
+        {//#UPLOAD
+
             errors = new Collection<SyncConflict>();
 
             if (changes == null)
@@ -539,81 +553,94 @@ namespace Sp.Sync.Data
             if (connection == null)
                 throw new ArgumentNullException("connection");
 
-            UpdateBatch batch = new UpdateBatch();
-
-            string clientIdColumn = GetClientColumnFromServerColumn("ID");
-
-            if (!changes.Columns.Contains(clientIdColumn))
-                throw new InvalidOperationException(String.Format(CultureInfo.CurrentCulture, Messages.ColumnIDNotContained, clientIdColumn));
-
-            IDictionary<int, DataRow> IdMapping = new Dictionary<int, DataRow>();
-
-            foreach (DataRow row in changes.Rows)
+            int _batchSize = 50;
+            int segmentsCount = (int)Math.Round( Math.Ceiling((double)changes.Rows.Count/ _batchSize),0);
+            
+            DataTable changesTotal = changes.Copy();
+            for (int i = 0; i < segmentsCount; i++)
             {
-                UpdateItem u = batch.CreateNewItem();
+                changes.Rows.Clear();
+                CopyRows(changesTotal, changes, i * _batchSize, _batchSize);
 
-                switch (row.RowState)
-                { 
-                    case DataRowState.Added:
-                        u.Command = UpdateCommands.Insert;
-                        break;
-                    case DataRowState.Deleted:
-                        u.Command = UpdateCommands.Delete;
-                        break;
-                    case DataRowState.Modified:
-                        u.Command = UpdateCommands.Update;
-                        break;
-                }
+                //SEND SEGMENT 
+                UpdateBatch batch = new UpdateBatch();
 
-                if (u.Command == UpdateCommands.Delete)
-                    row.RejectChanges();
-                
-                if (u.Command != UpdateCommands.Insert)
+                string clientIdColumn = GetClientColumnFromServerColumn("ID");
+
+                if (!changes.Columns.Contains(clientIdColumn))
+                    throw new InvalidOperationException(String.Format(CultureInfo.CurrentCulture, Messages.ColumnIDNotContained, clientIdColumn));
+
+                IDictionary<int, DataRow> IdMapping = new Dictionary<int, DataRow>();
+
+                foreach (DataRow row in changes.Rows)
                 {
-                    if (!(row[clientIdColumn] is DBNull))
+                    UpdateItem u = batch.CreateNewItem();
+
+                    switch (row.RowState)
                     {
-                        u.ListItemID = (int)row[clientIdColumn];
+                        case DataRowState.Added:
+                            u.Command = UpdateCommands.Insert;
+                            break;
+                        case DataRowState.Deleted:
+                            u.Command = UpdateCommands.Delete;
+                            break;
+                        case DataRowState.Modified:
+                            u.Command = UpdateCommands.Update;
+                            break;
                     }
-                    else {
-                        continue;
-                    }
-                }
 
-                if (u.Command != UpdateCommands.Delete)
-                {
-                    ListItem item = new ListItem();
-                    Exception e;
-                    MapDataRowToListItem(row, item, out e);
-                    u.ChangedItemData = item;
-                    if (e != null && SyncTracer.IsErrorEnabled())
-                        SyncTracer.Error(e.ToString());
-                }
+                    if (u.Command == UpdateCommands.Delete)
+                        row.RejectChanges();
 
-                batch.Add(u);
-                IdMapping[u.ID] = row;
-
-                if (u.Command == UpdateCommands.Delete)
-                    row.Delete();
-            }
-
-            if (batch.Count != 0)
-            {
-                UpdateResults results = connection.UpdateListItems(this.ListName, batch);
-                // FIX: errors must be handled appropriately
-                foreach (UpdateResult r in results)
-                {
-                    if (!r.IsSuccess())
+                    if (u.Command != UpdateCommands.Insert)
                     {
-                        if (!IdMapping.ContainsKey(r.UpdateItemID))
-                            throw new InvalidOperationException(
-                                String.Format(CultureInfo.CurrentCulture, Messages.NoIDMapping, r.UpdateItemID));
+                        if (!(row[clientIdColumn] is DBNull))
+                        {
+                            u.ListItemID = (int)row[clientIdColumn];
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
 
-                        DataRow clientRow = IdMapping[r.UpdateItemID];
-                        errors.Add(CreateSyncError(r, clientRow));
+                    if (u.Command != UpdateCommands.Delete)
+                    {
+                        ListItem item = new ListItem();
+                        Exception e;
+                        MapDataRowToListItem(row, item, out e);
+                        u.ChangedItemData = item;
+                        if (e != null && SyncTracer.IsErrorEnabled())
+                            SyncTracer.Error(e.ToString());
+                    }
+
+                    batch.Add(u);
+                    IdMapping[u.ID] = row;
+
+                    if (u.Command == UpdateCommands.Delete)
+                        row.Delete();
+                }
+
+                if (batch.Count != 0)
+                {
+                    UpdateResults results = connection.UpdateListItems(this.ListName, batch);
+                    // FIX: errors must be handled appropriately
+                    foreach (UpdateResult r in results)
+                    {
+                        if (!r.IsSuccess())
+                        {
+                            if (!IdMapping.ContainsKey(r.UpdateItemID))
+                                throw new InvalidOperationException(
+                                    String.Format(CultureInfo.CurrentCulture, Messages.NoIDMapping, r.UpdateItemID));
+
+                            DataRow clientRow = IdMapping[r.UpdateItemID];
+                            errors.Add(CreateSyncError(r, clientRow));
+                        }
                     }
                 }
+                //END SEND SEGMENT 
             }
-
+            
             if (errors.Count == 0)
                 errors = null;
 
