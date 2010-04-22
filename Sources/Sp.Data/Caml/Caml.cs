@@ -205,6 +205,9 @@ namespace Sp.Data.Caml
             XElement listItemElement = xmlNode.Elements(rowsetns + "row").FirstOrDefault();
             result.ItemData = listItemElement == null ? null : listItemElement.GetCamlListItem();
             return result;
+
+            //UpdateResult x;
+            //
         }
 
         private static string AttributeValueOrDefault(this XElement xmlNode, string attribute)
@@ -277,14 +280,46 @@ namespace Sp.Data.Caml
             return method;
         }
 
-        public static XmlNode GetCamlUpdateBatch(this UpdateBatch updateBatch)
+        // OLD VERSION
+        //public static XmlNode GetCamlUpdateBatch(this UpdateBatch updateBatch)
+        //{
+        //    XmlDocument doc = new XmlDocument();
+        //    XmlElement batch = doc.CreateElement("Batch");
+        //    batch.SetAttribute("OnError", updateBatch.ContinueOnError ? "Continue" : "Return");
+
+        //    foreach (UpdateItem i in updateBatch)
+        //        batch.AppendChild(i.GetCamlUpdateItem(doc));
+
+        //    return batch;
+        //}
+
+        public static XmlNode GetCamlUpdateBatch(this UpdateBatch updateBatch, out UpdateResults results)
         {
             XmlDocument doc = new XmlDocument();
             XmlElement batch = doc.CreateElement("Batch");
             batch.SetAttribute("OnError", updateBatch.ContinueOnError ? "Continue" : "Return");
 
+            results = null;
+
             foreach (UpdateItem i in updateBatch)
-                batch.AppendChild(i.GetCamlUpdateItem(doc));
+                try
+                {
+                    batch.AppendChild(i.GetCamlUpdateItem(doc));
+                }
+                catch (Exception e)
+                {
+                    if (results == null)
+                        results = new UpdateResults();
+                    results.Add(new UpdateResult()
+                    {
+                        Command = i.Command,
+                        ErrorCode = e.Message,
+                        ErrorMessage = e.Message,
+                        ItemData = i.ChangedItemData,
+                        UpdateItemID = i.ID
+                    });
+                }
+
             return batch;
         }
     }

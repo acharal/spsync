@@ -298,9 +298,24 @@ namespace Sp.Data
             if (updateBatch.Count == 0)
                 throw new ArgumentException("Batch contains no updates", "updateBatch");
 
-            XmlNode response = listService.UpdateListItems(listName, updateBatch.GetCamlUpdateBatch());
-            
-            return response.GetXElement().GetCamlUpdateResults();
+            // OLD VERSION
+            //XmlNode response = listService.UpdateListItems(listName, updateBatch.GetCamlUpdateBatch());
+            //return response.GetXElement().GetCamlUpdateResults();
+
+            //NEW
+            UpdateResults results = null;
+            XmlNode response = listService.UpdateListItems(listName, updateBatch.GetCamlUpdateBatch(out results));
+            var serverResults = response.GetXElement().GetCamlUpdateResults();
+
+            if (serverResults == null)
+                return results;
+
+            if (results != null)
+                foreach (var r in results)
+                    serverResults.Add(r);
+
+            return serverResults;
+            //END OF NEW
         }
 
         public ListDef GetListSchema(string listName)
