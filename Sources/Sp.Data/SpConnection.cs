@@ -304,17 +304,23 @@ namespace Sp.Data
 
             //NEW
             UpdateResults results = null;
-            XmlNode response = listService.UpdateListItems(listName, updateBatch.GetCamlUpdateBatch(out results));
-            var serverResults = response.GetXElement().GetCamlUpdateResults();
+            var batch = updateBatch.GetCamlUpdateBatch(out results);
+            if (batch.ChildNodes.Count > 0)
+            {
+                XmlNode response = listService.UpdateListItems(listName, batch);
+                var serverResults = response.GetXElement().GetCamlUpdateResults();
 
-            if (serverResults == null)
-                return results;
+                if (serverResults == null)
+                    return results;
 
-            if (results != null)
+                if (results != null)
                 foreach (var r in results)
                     serverResults.Add(r);
 
-            return serverResults;
+                return serverResults;
+            }
+
+            return results;
             //END OF NEW
         }
 
