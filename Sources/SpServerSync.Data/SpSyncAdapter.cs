@@ -168,8 +168,10 @@ namespace Sp.Sync.Data
 
             if (index > -1)
                 return ColumnMappings[index].ClientColumn;
-            else
+            else if (this.DataColumns.Contains(serverColumn))
                 return serverColumn;
+            else
+                return null;
         }
 
         /// <summary>
@@ -183,8 +185,10 @@ namespace Sp.Sync.Data
 
             if (index > -1)
                 return ColumnMappings[index].ServerColumn;
-            else
+            else if (this.DataColumns.Contains(clientColumn) && this.ColumnMappings.IndexOfServerColumn(clientColumn) < 0)
                 return clientColumn;
+            else
+                return null;
         }
 
         /// <summary>
@@ -801,6 +805,9 @@ namespace Sp.Sync.Data
                 DataColumn col = null;
                 string columnName = GetClientColumnFromServerColumn(cell.Key);
 
+                if (columnName == null)
+                    continue;
+
                 if (row.Table.Columns.Contains(columnName))
                     col = row.Table.Columns[columnName];
 
@@ -854,6 +861,9 @@ namespace Sp.Sync.Data
             foreach (DataColumn column in row.Table.Columns)
             {
                 string fieldName = GetServerColumnFromClientColumn(column.ColumnName);
+
+                if (fieldName == null)
+                    continue;
                 
                 if (this.DataColumns.Count > 0 &&
                     !this.DataColumns.Contains(fieldName))
@@ -952,12 +962,14 @@ namespace Sp.Sync.Data
 
             foreach (string columnName in this.DataColumns)
             {
-                string fieldName = GetServerColumnFromClientColumn(columnName);
-                if (IsMetaInfoProperty(fieldName))
+                if (columnName != null)
                 {
-                    includeMetaInfo = true;    
+                    if (IsMetaInfoProperty(columnName))
+                    {
+                        includeMetaInfo = true;
+                    }
+                    viewFields.Add(columnName);
                 }
-                viewFields.Add(fieldName);
             }
 
             if (includeMetaInfo)
