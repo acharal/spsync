@@ -66,6 +66,12 @@ namespace Sp.Sync.Data
         public SyncDataColumnCollection DataColumns { get; set; }
 
         /// <summary>
+        /// Gets the names of the columns to be ignored on update.
+        /// </summary>
+        /// <remarks></remarks>
+        public SyncDataColumnCollection IgnoreColumnsOnUpdate { get; set; }
+
+        /// <summary>
         /// Gets or sets the name of a rowguid column
         /// </summary>
         public string RowGuidColumn { get; set; }
@@ -559,11 +565,32 @@ namespace Sp.Sync.Data
 
             int _batchSize = 50;
             int segmentsCount = (int)Math.Round( Math.Ceiling((double)changes.Rows.Count/ _batchSize),0);
-            
+
+
+            if (IgnoreColumnsOnUpdate != null)
+            {
+                // case to be handled
+                // cannot remove Sharepoint ID.
+                // cannot remove Primary Key of DataTable?
+
+                foreach (string ignoredColumn in IgnoreColumnsOnUpdate)
+                {
+                    string clientColumn = GetClientColumnFromServerColumn(ignoredColumn);
+                    if (clientColumn != null &&
+                        changes.Columns.Contains(clientColumn))
+                    {
+                        changes.Columns.Remove(clientColumn);
+                    }
+                }
+            }
+
+
             DataTable changesTotal = changes.Copy();
+            
             for (int i = 0; i < segmentsCount; i++)
             {
                 changes.Rows.Clear();
+
                 CopyRows(changesTotal, changes, i * _batchSize, _batchSize);
 
                 //SEND SEGMENT 
@@ -612,6 +639,7 @@ namespace Sp.Sync.Data
                     {
                         ListItem item = new ListItem();
                         Exception e;
+
                         MapDataRowToListItem(row, item, out e);
                         u.ChangedItemData = item;
                         if (e != null && SyncTracer.IsErrorEnabled())
