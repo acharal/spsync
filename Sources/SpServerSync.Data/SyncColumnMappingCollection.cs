@@ -35,7 +35,7 @@ namespace Sp.Sync.Data
         }
 
 
-        public ColumnMapping this[int index]
+        public new ColumnMapping this[int index]
         {
             get {
                 return base.Items[index];

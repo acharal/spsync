@@ -9,7 +9,7 @@ namespace Sp.Data
     {
         private XmlReader reader;
 
-        private IDictionary<string, string> currentRecord;
+        // private IDictionary<string, string> currentRecord;
 
         DataTable dt = new DataTable();
 

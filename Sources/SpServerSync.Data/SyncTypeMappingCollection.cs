@@ -22,7 +22,7 @@ namespace Sp.Sync.Data
             return -1;
         }
 
-        public TypeMapping this[int index]
+        public new TypeMapping this[int index]
         {
             get {
                 return base.Items[index];
