@@ -327,7 +327,7 @@ namespace Sp.Sync.Data.Server
                 }
                 catch (Exception e)
                 {
-                    var e2 = new Microsoft.Synchronization.SyncException("", e);
+                    var e2 = new Microsoft.Synchronization.SyncException(e.Message, e);
                     throw e2;
                 }
                 finally
