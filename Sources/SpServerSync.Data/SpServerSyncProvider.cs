@@ -188,7 +188,7 @@ namespace Sp.Sync.Data.Server
                 }
                 catch (Exception e)
                 {
-                    SyncConflict conflict = new SyncConflict(ConflictType.ErrorsOccurred, SyncStage.UploadingChanges) { ErrorMessage = e.Message + ", InnerException:" + e.InnerException.ToString(), ServerChange = dataTable };
+                    SyncConflict conflict = new SyncConflict(ConflictType.ErrorsOccurred, SyncStage.UploadingChanges) { ErrorMessage = e.Message + ", InnerException:" + e.InnerException.ToString(), ServerChange = dataTable, ClientChange = dataTable };
                     ApplyChangeFailedEventArgs failureArgs = new ApplyChangeFailedEventArgs(tableMetadata, conflict , null, syncSession, syncContext, Connection, null);
                     OnApplyChangeFailed(failureArgs);
                     // handle errors?
