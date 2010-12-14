@@ -106,8 +106,9 @@ namespace Sp.Sync.Data.Server
         /// <param name="dataSet">A DataSet object that contains the changes to be applied to the server database for each table in the synchronization group.</param>
         /// <param name="syncSession">A SyncSession object that contains synchronization session variables, such as the ID of the client that is synchronizing.</param>
         /// <returns>A SyncContext object that contains synchronization data and metadata.</returns>
+        /// #UPLOAD 1
         public override SyncContext ApplyChanges(SyncGroupMetadata groupMetadata, DataSet dataSet, SyncSession syncSession)
-        {//UPLOAD
+        {
             if (groupMetadata == null)
                 throw new ArgumentNullException("groupMetadata");
             if (syncSession == null)
@@ -136,6 +137,7 @@ namespace Sp.Sync.Data.Server
             return syncContext;
         }
 
+        /// #UPLOAD 2
         private void ApplyChangesInternal(SyncGroupMetadata groupMetadata, DataSet dataSet, SyncSession syncSession, SyncContext syncContext)
         {
             SyncStage syncStage = SyncStage.UploadingChanges;
@@ -165,7 +167,7 @@ namespace Sp.Sync.Data.Server
                 {
                     Collection<SyncConflict> conflicts;
                     int changesCount = dataTable.Rows.Count;
-                    adapter.Update(dataTable, Connection, out conflicts);
+                   adapter.Update(dataTable, Connection, out conflicts);
 
                     if (conflicts != null)
                     {

@@ -319,9 +319,12 @@ namespace Sp.Data.WS {
         [System.Web.Services.Protocols.SoapDocumentMethodAttribute("http://schemas.microsoft.com/sharepoint/soap/UpdateListItems", RequestNamespace = "http://schemas.microsoft.com/sharepoint/soap/", ResponseNamespace = "http://schemas.microsoft.com/sharepoint/soap/", Use = System.Web.Services.Description.SoapBindingUse.Literal, ParameterStyle = System.Web.Services.Protocols.SoapParameterStyle.Wrapped)]
         public System.Xml.XmlNode UpdateListItems(string listName, System.Xml.XmlNode updates)
         {
-            object[] results = this.Invoke("UpdateListItems", new object[] {
+            object[] results;
+           
+                results = this.Invoke("UpdateListItems", new object[] {
                         listName,
                         updates});
+          
             return ((System.Xml.XmlNode)(results[0]));
         }
 

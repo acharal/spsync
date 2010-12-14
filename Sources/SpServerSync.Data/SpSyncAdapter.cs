@@ -362,6 +362,7 @@ namespace Sp.Sync.Data
         /// So, no record will be added to the updateTbl.
         /// </remarks>
         /// <returns>the new SpSyncAnchor object to be used in subsequent calls</returns>
+        /// #DOWNLOAD
         public SpSyncAnchor SelectIncremental(SpSyncAnchor anchor, int rowLimit, SpConnection connection,
             DataTable insertTbl, DataTable updateTbl, DataTable deleteTbl)
         {
@@ -419,12 +420,13 @@ namespace Sp.Sync.Data
                     }
                 }
             }
-            insertTbl.AcceptChanges();
+            insertTbl.AcceptChanges(); // COMMITCHANGES
             updateTbl.AcceptChanges();
             deleteTbl.AcceptChanges();
             return CalculateNextAnchor(anchor, changes);
         }
 
+        /// #DOWNLOAD
         public SpSyncAnchor SelectIncremental(SpSyncAnchor anchor, int rowLimit, SpConnection connection,
             DataTable changeTable)
         {//#DOWNLOAD in batches - step 3
@@ -484,6 +486,7 @@ namespace Sp.Sync.Data
             return CalculateNextAnchor(anchor, changes);
         }
 
+        /// #DOWNLOAD (not in batches)
         public SpSyncAnchor SelectAll(SpSyncAnchor anchor, int rowLimit, DataTable dataTable, SpConnection connection)
         {
 
@@ -552,8 +555,9 @@ namespace Sp.Sync.Data
         /// <param name="updates"></param>
         /// <param name="deletes"></param>
         /// <param name="connection"></param>
+        /// #UPLOAD 3
         public void Update(DataTable changes, SpConnection connection, out Collection<SyncConflict> errors)
-        {//#UPLOAD
+        {
 
             errors = new Collection<SyncConflict>();
 
@@ -655,20 +659,36 @@ namespace Sp.Sync.Data
 
                 if (batch.Count != 0)
                 {
-                    UpdateResults results = connection.UpdateListItems(this.ListName, batch);
-                    // FIX: errors must be handled appropriately
-                    foreach (UpdateResult r in results)
-                    {
-                        if (!r.IsSuccess())
+                    //try
+                    //{
+                        UpdateResults results = connection.UpdateListItems(this.ListName, batch);
+                        // FIX: errors must be handled appropriately
+                        foreach (UpdateResult r in results)
                         {
-                            if (!IdMapping.ContainsKey(r.UpdateItemID))
-                                throw new InvalidOperationException(
-                                    String.Format(CultureInfo.CurrentCulture, Messages.NoIDMapping, r.UpdateItemID));
+                            if (!r.IsSuccess())
+                            {
+                                if (!IdMapping.ContainsKey(r.UpdateItemID))
+                                    throw new InvalidOperationException(
+                                        String.Format(CultureInfo.CurrentCulture, Messages.NoIDMapping, r.UpdateItemID));
 
-                            DataRow clientRow = IdMapping[r.UpdateItemID];
-                            errors.Add(CreateSyncError(r, clientRow));
+                                DataRow clientRow = IdMapping[r.UpdateItemID];
+                                errors.Add(CreateSyncError(r, clientRow));
+                            }
                         }
-                    }
+                    //}
+                    //catch (Exception ex)
+                    //{ 
+                    ////usually connection error
+                    //    foreach (UpdateItem item in batch)
+                    //    {
+                    //        if (!IdMapping.ContainsKey(item.ID))
+                    //            throw new InvalidOperationException(
+                    //                String.Format(CultureInfo.CurrentCulture, Messages.NoIDMapping, r.UpdateItemID));
+
+                    //        DataRow clientRow = IdMapping[item.ID];
+                    //        errors.Add(CreateSyncError(new UpdateResult(, clientRow));
+                    //    }
+                    //}
                 }
                 //END SEND SEGMENT 
             }

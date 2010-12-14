@@ -307,17 +307,37 @@ namespace Sp.Data
             var batch = updateBatch.GetCamlUpdateBatch(out results);
             if (batch.ChildNodes.Count > 0)
             {
-                XmlNode response = listService.UpdateListItems(listName, batch);
-                var serverResults = response.GetXElement().GetCamlUpdateResults();
+                try
+                {
+                    XmlNode response = listService.UpdateListItems(listName, batch);
+                    var serverResults = response.GetXElement().GetCamlUpdateResults();
 
-                if (serverResults == null)
-                    return results;
+                    if (serverResults == null)
+                        return results;
 
-                if (results != null)
-                foreach (var r in results)
-                    serverResults.Add(r);
+                    if (results != null)
+                        foreach (var r in results)
+                            serverResults.Add(r);
 
-                return serverResults;
+                    return serverResults;
+                }
+                catch (Exception ex)
+                {  //(ex as System.Net.WebException).Status = Timeout , Internalstatus = RequestFatal , Response = null
+                //connection exception
+                    UpdateResults errorresults = new UpdateResults();
+
+                    foreach (UpdateItem item in updateBatch)
+                        errorresults.Add(new UpdateResult()
+                        {
+                            ErrorCode = UpdateResult.GenericError,
+                            ErrorMessage = "Connection Timeout",
+                            Command = item.Command,
+                            ItemData = item.ChangedItemData,
+                            UpdateItemID = item.ID
+                        });
+
+                        return errorresults;
+                }
             }
 
             return results;
