@@ -567,7 +567,7 @@ namespace Sp.Sync.Data
             if (connection == null)
                 throw new ArgumentNullException("connection");
 
-            int _batchSize = 50;
+            int _batchSize = 25;
             int segmentsCount = (int)Math.Round( Math.Ceiling((double)changes.Rows.Count/ _batchSize),0);
 
 
