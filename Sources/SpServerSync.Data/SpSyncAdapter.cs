@@ -622,6 +622,8 @@ namespace Sp.Sync.Data
                         case DataRowState.Modified:
                             u.Command = UpdateCommands.Update;
                             break;
+                        case DataRowState.Unchanged:
+                            continue;
                     }
 
                     if (u.Command == UpdateCommands.Delete)
