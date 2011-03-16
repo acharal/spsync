@@ -12,7 +12,7 @@ namespace Sp.Data
     {
         private ConnectionState _state;
 
-        private int _connectionTimeout = 100000000;
+        private int _connectionTimeout = 3600000;
 
         private string _server;
 
