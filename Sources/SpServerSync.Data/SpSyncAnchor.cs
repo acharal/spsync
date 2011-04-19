@@ -1,5 +1,6 @@
 ﻿using System;
 using Sp.Data.Caml;
+using System.Xml.Serialization;
 
 namespace Sp.Sync
 {
@@ -7,28 +8,33 @@ namespace Sp.Sync
     /// Holds the Sharepoint specific anchor of synchronization
     /// </summary>
     [Serializable]
+    [XmlRoot(ElementName = "S")]
     public class SpSyncAnchor
     {
         /// <summary>
-        /// Sets or gets the token for the paging mechanism
+        /// Sets or gets the token for the paging mechanism (PagingToken)
         /// </summary>
+        [XmlElement(ElementName = "P")]
         public string PagingToken { set; get; }
         
         /// <summary>
-        /// Sets or gets the token for the next synchronization
+        /// Sets or gets the token for the next synchronization (NextChangesToken)
         /// </summary>
+        [XmlElement(ElementName = "N")]
         public string NextChangesToken { set; get; }
 
         /// <summary>
-        /// Sets or gets a boolean if there are more changes after this anchor
+        /// Sets or gets a boolean if there are more changes after this anchor(HasMoreData)
         /// </summary>
+        [XmlElement(ElementName = "H")]
         public bool HasMoreData = false;
 
         public static readonly SpSyncAnchor Empty = new SpSyncAnchor();
 
         /// <summary>
-        /// Sets or gets the anchor for the next synchronization
+        /// Sets or gets the anchor for the next synchronization(NextChangesAnchor)
         /// </summary>
+        [XmlElement(ElementName = "A")]
         public SpSyncAnchor NextChangesAnchor { set; get; }
 
         /// <summary>
@@ -60,5 +66,6 @@ namespace Sp.Sync
             NextChangesToken = changeToken;
             PagingToken = pageToken;
         }
+
     }
 }
