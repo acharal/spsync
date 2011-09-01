@@ -817,7 +817,7 @@ namespace Sp.Sync.Data
                 value = value.Substring(0, index);
             }
 
-            return Int32.Parse(value);
+            return Int32.Parse(value, NumberStyles.AllowDecimalPoint, new CultureInfo("en-US"));
         }
 
         /// <summary>
@@ -883,6 +883,7 @@ namespace Sp.Sync.Data
                 {
                     if (e == null)
                         e = ex;
+                    e = new Exception(ex.Message + " || LLLLLLL " + row.Table.TableName + row.Table.Columns[columnName].DataType.ToString() + "," + col.ColumnName + "," + cell.Value.ToString() + "," + col.DataType.ToString() + "," + cell.Key + "," + cell.GetType().ToString() + ",|" + CultureInfo.CurrentCulture.NumberFormat.CurrencyDecimalSeparator + ",|" + CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator);
                 }
             }
         }
