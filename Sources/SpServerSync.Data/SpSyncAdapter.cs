@@ -816,10 +816,39 @@ namespace Sp.Sync.Data
             {
                 value = value.Substring(0, index);
             }
-
-            return Int32.Parse(value, NumberStyles.AllowDecimalPoint, new CultureInfo("en-US"));
+            CultureInfo culture = new CultureInfo("en-US");
+            culture.NumberFormat.CurrencyDecimalSeparator = ".";
+            culture.NumberFormat.CurrencyGroupSeparator = ",";
+            culture.NumberFormat.NumberDecimalSeparator = ".";
+            culture.NumberFormat.NumberGroupSeparator = ",";
+            culture.NumberFormat.PercentDecimalSeparator = ".";
+            culture.NumberFormat.PercentGroupSeparator = ",";
+            value = value.Replace(',','.');
+            return Int32.Parse(value, NumberStyles.AllowDecimalPoint, culture);
+        }
+        
+        /// <summary>
+        /// Parse the string to a float value
+        /// </summary>
+        private float ParseFloat(string value)
+        {
+            int index = value.IndexOf(";#");
+            if (index > -1)
+            {
+                value = value.Substring(0, index);
+            }
+            CultureInfo culture = new CultureInfo("en-US");
+            culture.NumberFormat.CurrencyDecimalSeparator = ".";
+            culture.NumberFormat.CurrencyGroupSeparator = ",";
+            culture.NumberFormat.NumberDecimalSeparator = ".";
+            culture.NumberFormat.NumberGroupSeparator = ",";
+            culture.NumberFormat.PercentDecimalSeparator = ".";
+            culture.NumberFormat.PercentGroupSeparator = ",";
+            value = value.Replace(',','.');
+            return float.Parse(value, NumberStyles.AllowDecimalPoint, culture);
         }
 
+        
         /// <summary>
         /// Sets the extended properties of a DataColumn object
         /// </summary>
@@ -865,6 +894,7 @@ namespace Sp.Sync.Data
                 {
                     if (col != null)
                     {
+                       
                         if (col.DataType == typeof(String))
                             row[col] = cell.Value;
                         else if (col.DataType == typeof(int))
@@ -875,6 +905,8 @@ namespace Sp.Sync.Data
                             row[col] = DateTime.Parse(cell.Value);
                         else if (col.DataType == typeof(Boolean))
                             row[col] = (cell.Value == "1" ? true : false);
+                        else if (col.DataType == typeof(float) || col.DataType == typeof(double))
+                            row[col] = ParseFloat(cell.Value);
                         else
                             row[col] = cell.Value;
                     }
