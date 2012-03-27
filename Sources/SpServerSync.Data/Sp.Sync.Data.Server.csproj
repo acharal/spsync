@@ -54,7 +54,7 @@
   <ItemGroup>
     <Reference Include="Microsoft.Synchronization, Version=1.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Program Files\Microsoft Sync Framework\2.0\Runtime\x86\Microsoft.Synchronization.dll</HintPath>
+      <HintPath>C:\Program Files (x86)\Microsoft Sync Framework\2.0\Runtime\x86\Microsoft.Synchronization.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Synchronization.Data, Version=1.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -68,8 +68,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ColumnMapping.cs" />
-    <Compile Include="SpSyncGroupAnchorUncompressed.cs" />
-    <Compile Include="SpSyncAnchorUncompressed.cs" />
     <Compile Include="Messages.Designer.cs">
       <DependentUpon>Messages.resx</DependentUpon>
       <AutoGen>True</AutoGen>
