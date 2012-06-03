@@ -2,7 +2,7 @@
 
 
 This implementation provides SyncAdapters which can synchronize SharePoint Lists to local SQLCe databases.
-The implementation of conflict resolution, initiation of synchronization et al, depends on [[http://msdn.microsoft.com/en-us/sync/bb736753.aspx|Microsoft Sync Framework]].
+The implementation of conflict resolution, initiation of synchronization et al, depends on Microsoft Sync Framework.
 
 ## Features
 
